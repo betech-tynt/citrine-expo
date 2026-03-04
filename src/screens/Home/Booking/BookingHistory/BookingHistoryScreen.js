@@ -1,30 +1,30 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
     FlatList,
     StyleSheet,
     Text,
-    View,
     TouchableOpacity,
-    ActivityIndicator,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Header from '../../../../components/Header';
-import { commonStyles } from '../../../../theme/commonStyles';
 import colors from '../../../../constants/colors';
-import { moderateSize } from '../../../../styles';
-import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '../../../../utils/formatCurrency';
 import {
     BOOKING_STATUS,
-    BOOKING_STATUS_I18N_KEY,
     BOOKING_STATUS_COLORS,
-    normalizeBookingStatus,
+    BOOKING_STATUS_I18N_KEY,
     getBookingStatusStyle,
+    normalizeBookingStatus,
 } from '../../../../constants/utils';
-import { BookingHistoryCardPropTypes } from '../../../../utils/propTypes';
 import { fetchCustomerBookingHistory } from '../../../../services/apiBookingHistory';
+import { moderateSize } from '../../../../styles';
+import { commonStyles } from '../../../../theme/commonStyles';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 import { formatDate } from '../../../../utils/formatDate';
+import { BookingHistoryCardPropTypes } from '../../../../utils/propTypes';
 
 // Use shared utility function for status styles
 const getStatusStyle = status => getBookingStatusStyle(status, styles);

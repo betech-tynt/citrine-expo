@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Modal } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
-import MonthYearPicker from 'react-native-month-year-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Header from '../../../components/Header';
@@ -17,7 +16,7 @@ import { moderateSize } from '../../../styles';
 const WorkRegisterMonthScreen = () => {
     const navigation = useNavigation();
     const { t } = useTranslation();
-    const [showPicker, setShowPicker] = useState(false); // Show MonthYearPicker
+    const [showPicker, setShowPicker] = useState(false); // Show custom Month/Year picker
     const handlePress = () => {
         navigation.navigate('WorkRegisterWeekScreen');
     };
@@ -134,12 +133,12 @@ const WorkRegisterMonthScreen = () => {
                 </View>
             </View>
             {showPicker && (
-                <MonthYearPicker
-                    onChange={onValueChange}
-                    value={new Date(currentYear, currentMonth - 1)}
-                    minimumDate={new Date(2000, 0)}
-                    maximumDate={new Date(2100, 11)}
-                    locale="en"
+                <MonthYearPickerModal
+                    visible={showPicker}
+                    onClose={() => setShowPicker(false)}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    onConfirm={onValueChange}
                 />
             )}
         </>
@@ -310,6 +309,163 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(16),
         fontWeight: "600",
     },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#FFFFFF',
+        padding: moderateSize(20),
+        borderRadius: moderateSize(12),
+        width: '80%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: moderateSize(16),
+    },
+    modalYearText: {
+        fontSize: moderateSize(20),
+        fontWeight: '600',
+        marginHorizontal: moderateSize(16),
+    },
+    monthGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    monthItem: {
+        width: '30%',
+        paddingVertical: moderateSize(8),
+        marginBottom: moderateSize(8),
+        borderRadius: moderateSize(6),
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+    },
+    monthItemSelected: {
+        backgroundColor: '#3629B7',
+        borderColor: '#3629B7',
+    },
+    monthItemText: {
+        fontSize: moderateSize(14),
+        color: '#333333',
+    },
+    monthItemTextSelected: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
+    modalActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: moderateSize(16),
+    },
+    modalButton: {
+        paddingVertical: moderateSize(8),
+        paddingHorizontal: moderateSize(16),
+        marginLeft: moderateSize(8),
+    },
+    modalButtonText: {
+        fontSize: moderateSize(14),
+        color: '#3629B7',
+        fontWeight: '600',
+    },
 });
+
+// Simple JS-only Month/Year picker to replace `react-native-month-year-picker`
+const MonthYearPickerModal = ({ visible, onClose, currentMonth, currentYear, onConfirm }) => {
+    const [tempMonth, setTempMonth] = useState(currentMonth);
+    const [tempYear, setTempYear] = useState(currentYear);
+
+    const changeYear = (delta) => {
+        setTempYear((prev) => prev + delta);
+    };
+
+    const handleSelectMonth = (month) => {
+        setTempMonth(month);
+    };
+
+    const handleConfirm = () => {
+        const selectedDate = new Date(tempYear, tempMonth - 1, 1);
+        // mimic `onChange(event, date)` signature from native picker
+        onConfirm(null, selectedDate);
+    };
+
+    const months = [
+        { value: 1, label: 'Jan' },
+        { value: 2, label: 'Feb' },
+        { value: 3, label: 'Mar' },
+        { value: 4, label: 'Apr' },
+        { value: 5, label: 'May' },
+        { value: 6, label: 'Jun' },
+        { value: 7, label: 'Jul' },
+        { value: 8, label: 'Aug' },
+        { value: 9, label: 'Sep' },
+        { value: 10, label: 'Oct' },
+        { value: 11, label: 'Nov' },
+        { value: 12, label: 'Dec' },
+    ];
+
+    return (
+        <Modal
+            transparent
+            visible={visible}
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <TouchableOpacity onPress={() => changeYear(-1)}>
+                            <Text style={styles.headerButton}>&lt;</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.modalYearText}>{tempYear}</Text>
+                        <TouchableOpacity onPress={() => changeYear(1)}>
+                            <Text style={styles.headerButton}>&gt;</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.monthGrid}>
+                        {months.map((m) => {
+                            const isSelected = m.value === tempMonth;
+                            return (
+                                <TouchableOpacity
+                                    key={m.value}
+                                    style={[
+                                        styles.monthItem,
+                                        isSelected && styles.monthItemSelected,
+                                    ]}
+                                    onPress={() => handleSelectMonth(m.value)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.monthItemText,
+                                            isSelected && styles.monthItemTextSelected,
+                                        ]}
+                                    >
+                                        {m.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    <View style={styles.modalActions}>
+                        <TouchableOpacity style={styles.modalButton} onPress={onClose}>
+                            <Text style={styles.modalButtonText}>Hủy</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.modalButton} onPress={handleConfirm}>
+                            <Text style={styles.modalButtonText}>OK</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+};
+
 
 export default WorkRegisterMonthScreen;

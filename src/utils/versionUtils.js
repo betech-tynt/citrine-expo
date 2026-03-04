@@ -1,4 +1,4 @@
-import DeviceInfo from 'react-native-device-info';
+import Constants from 'expo-constants';
 import { ENV } from '../config/env';
 
 /**
@@ -6,7 +6,11 @@ import { ENV } from '../config/env';
  * @returns {string} Version string in format "x.x.x (env)"
  */
 export const getDisplayVersion = () => {
-    const appVersion = DeviceInfo.getVersion();
+    const appVersion =
+        Constants.expoConfig?.version ||
+        Constants.expoConfig?.runtimeVersion ||
+        Constants.nativeAppVersion ||
+        '1.0.0';
     const envShortMap = {
         staging: 'stg',
         production: 'prd',

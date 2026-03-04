@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, Image, View, Alert, Modal } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
-import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../../services/auth';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Image, Modal, StyleSheet, Text, View } from 'react-native';
 import LoginImage from '../../assets/images/backgrounds/locker-login.png';
-import DeviceInfo from 'react-native-device-info';
-import { getDisplayVersion } from '../../utils/versionUtils';
-import { moderateSize } from '../../styles';
+import Button from '../../components/Button';
+import Header from '../../components/Header';
+import Input from '../../components/Input';
 import { ENV } from '../../config/env';
+import { login } from '../../services/auth';
+import { moderateSize } from '../../styles';
+import { commonStyles } from '../../theme/commonStyles';
+import { getDisplayVersion } from '../../utils/versionUtils';
 
 const LAST_USERNAME_KEY = 'lastUsername';
 const LAST_PASSWORD_KEY = 'lastPassword';
@@ -30,7 +29,8 @@ const LoginScreen = () => {
 
     const performLogin = async (loginUsername, loginPassword) => {
         try {
-            const deviceToken = await DeviceInfo.getUniqueId();
+            // Expo Go does not support react-native-device-info; use a simple fallback id
+            const deviceToken = 'expo-go-device';
             await login(loginUsername, loginPassword, deviceToken);
             await AsyncStorage.setItem('isLogin', 'true');
             await AsyncStorage.setItem(LAST_USERNAME_KEY, loginUsername);

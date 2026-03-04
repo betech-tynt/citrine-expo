@@ -1,12 +1,19 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import CustomIcon from './CustomIcon';
-import { HeaderPropTypes } from '../utils/propTypes';
 import colors from '../constants/colors';
 import { moderateSize } from '../styles';
+import { HeaderPropTypes } from '../utils/propTypes';
+import CustomIcon from './CustomIcon';
+
+// Approximate header background height so it looks consistent across devices
+const STATUS_BAR_HEIGHT =
+    Platform.OS === 'android'
+        ? StatusBar.currentHeight || 55
+        : 55;
+const HEADER_BACKGROUND_HEIGHT = (STATUS_BAR_HEIGHT || 0) + moderateSize(80);
 
 // Header component with customizable props
 const Header = ({
@@ -96,7 +103,7 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
-        height: '20%',
+        height: HEADER_BACKGROUND_HEIGHT,
         backgroundColor: colors.primary,
         zIndex: 1,
     },
@@ -105,10 +112,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: moderateSize(20),
         paddingVertical: moderateSize(10),
-        paddingBottom: moderateSize(6),
-        paddingTop: moderateSize(12),
+        paddingBottom: moderateSize(10),
         backgroundColor: colors.primary,
-        minHeight: moderateSize(56),
     },
     backButton: {
         marginRight: moderateSize(16),

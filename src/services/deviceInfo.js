@@ -1,12 +1,16 @@
 import { Platform } from 'react-native';
-import DeviceInfo from 'react-native-device-info';
+import Constants from 'expo-constants';
 
 export function getPlatform() {
     return Platform.OS;
 }
 
 export async function getDeviceInfo() {
-    const version = await DeviceInfo.getVersion();
+    const version =
+        Constants.expoConfig?.version ||
+        Constants.expoConfig?.runtimeVersion ||
+        Constants.nativeAppVersion ||
+        '1.0.0';
     const platform = getPlatform();
     return { version, platform };
 }

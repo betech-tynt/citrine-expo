@@ -1,6 +1,6 @@
-import { API_URL } from '../constants/utils';
-import { publicToken } from '../../package.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { publicToken } from '../../package.json';
+import { API_URL } from '../constants/utils';
 
 /**
  * apiClient function to handle API requests
@@ -45,6 +45,7 @@ async function apiClient(query, variables = {}, token = null, method = 'POST') {
     // Check if the response is successful
     if (!response.ok) {
         const errorData = await response.json();
+        console.log('Error Data:', errorData);
         throw new Error(
             errorData.errors?.map(error => error.message).join('\n') ||
                 'An error occurred',

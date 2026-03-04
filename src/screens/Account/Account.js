@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Linking } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { commonStyles } from '@/src/theme/commonStyles';
 import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import Header from '../../components/Header';
-import colors from '../../constants/colors';
-import { moderateSize } from '../../styles/moderateSize';
-import { logout } from '../../services/auth';
-import { getDisplayVersion } from '../../utils/versionUtils';
 import { ENV } from '../../config/env';
+import colors from '../../constants/colors';
+import { logout } from '../../services/auth';
+import { moderateSize } from '../../styles/moderateSize';
+import { getDisplayVersion } from '../../utils/versionUtils';
 import Profile from './Profile';
 import SettingMenu from './SettingMenu';
 
@@ -112,7 +113,7 @@ const Account = () => {
                 showCrudText={false}
                 showHomeIcon={false}
             />
-            <View style={styles.main}>
+            <View style={commonStyles.main}>
                 <ScrollView
                     style={styles.scrollView}
                     showsVerticalScrollIndicator={false}

@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { commonStyles } from '../../theme/commonStyles';
-import MessageItem from '../../components/MessageItem';
 import { FlatList } from 'react-native-gesture-handler';
-import { SAMPLE_MESSAGE } from '../../constants/utils';
 import MainHeader from '../../components/MainHeader';
+import MessageItem from '../../components/MessageItem';
+import { SAMPLE_MESSAGE } from '../../constants/utils';
+import { commonStyles } from '../../theme/commonStyles';
 
 const MessageScreen = () => {
     return (
