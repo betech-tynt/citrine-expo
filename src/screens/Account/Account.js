@@ -1,38 +1,125 @@
-import { commonStyles } from '@/src/theme/commonStyles';
-import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import {
+    StyleSheet,
+    View,
+    ScrollView,
+    Alert,
+    Linking,
+    ActivityIndicator,
+    Text,
+    TouchableOpacity,
+    Platform,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../../components/Header';
-import { ENV } from '../../config/env';
 import colors from '../../constants/colors';
-import { logout } from '../../services/auth';
 import { moderateSize } from '../../styles/moderateSize';
+import { logout, getUserData } from '../../services/auth';
 import { getDisplayVersion } from '../../utils/versionUtils';
+import { ENV } from '../../config/env';
+import CustomIcon from '../../components/CustomIcon';
 import Profile from './Profile';
 import SettingMenu from './SettingMenu';
+import { commonStyles } from '../../theme/commonStyles';
+import { log } from '../../utils/handleLog';
+import { isAuthError, handleAuthError } from '../../utils/authErrorHandler';
 
 const Account = () => {
     const { t, i18n } = useTranslation();
     const navigation = useNavigation();
     const displayVersion = getDisplayVersion();
 
-    const userData = {
-        name: 'Nguyễn Văn A',
-        username: 'nguyenvana',
-        email: 'a.nguyen@example.com',
-        phone: '+84 90 123 4567',
-        address: '123 Đường ABC, Q.1, TP.HCM',
-        dob: '01/01/1990',
-        role: 'Khách hàng',
-        avatarImage: 'https://picsum.photos/seed/avatar/150/150.jpg',
-    };
+    // State management for API data
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [userData, setUserData] = useState(null);
 
-    const [userPhoto, setUserPhoto] = useState(null); // eslint-disable-line no-unused-vars
-    const [backgroundImage, setBackgroundImage] = useState(null); // eslint-disable-line no-unused-vars
+    const [userPhoto, setUserPhoto] = useState(null);
+    const [backgroundImage, setBackgroundImage] = useState(null);
     const [promotionEnabled, setPromotionEnabled] = useState(true);
 
-    const handleEditProfile = () => console.log('Edit profile pressed');
+    /**
+     * Fetch user data from API
+     */
+    const loadUserData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Double check token before calling API
+            const token = await AsyncStorage.getItem('token');
+            if (!token) {
+                handleAuthError(navigation);
+                return;
+            }
+
+            const response = await getUserData();
+
+            // Map API response to UI format
+            const user = response?.user;
+            const profile = user?.profile;
+            log('[Account] API response profile:', profile);
+            const mappedUserData = {
+                // Name fields
+                firstName: profile?.first_name || '',
+                lastName: profile?.last_name || '',
+                kanaFirstName: profile?.kana_first_name || '',
+                kanaLastName: profile?.kana_last_name || '',
+                name: profile?.fullname || user?.name || '',
+                username: user?.username || '',
+                email: profile?.email || user?.email || '',
+                phone: profile?.phone_number || '',
+                // Address fields
+                postalCode: profile?.postal_code || '',
+                ward: profile?.ward || '',
+                fullAddress: profile?.full_address || '',
+                address: profile?.address || '',
+                // Personal info
+                dob: profile?.birthday || '',
+                gender: profile?.gender || '',
+                code: profile?.code || '',
+                companyId: profile?.company_id || '',
+                // Role
+                role: user?.role || null,
+            };
+
+            // Extract avatar from profile
+            const avatarImage =
+                profile?.avatar_url ||
+                'https://picsum.photos/seed/avatar/150/150.jpg';
+
+            setUserData(mappedUserData);
+        } catch (err) {
+            console.error('[Account] Error loading user data:', err);
+            const errorMessage = err.message || '';
+
+            // Check if error is authentication related
+            if (isAuthError(errorMessage)) {
+                handleAuthError(navigation);
+                return;
+            }
+
+            setError(errorMessage || 'Failed to load user data');
+        } finally {
+            setLoading(false);
+        }
+    }, [navigation]);
+
+    // Fetch user data when screen comes into focus (e.g., after editing profile)
+    useFocusEffect(
+        useCallback(() => {
+            loadUserData();
+        }, [loadUserData]),
+    );
+
+    const handleEditProfile = () =>
+        navigation.navigate('EditProfile', { userData });
+
+    const handleRetry = () => {
+        loadUserData();
+    };
 
     // Get current language name
     const getCurrentLanguageName = () => {
@@ -45,29 +132,55 @@ const Account = () => {
         return languageMap[currentLang] || languageMap.vi;
     };
 
-    // handle check updates (stg use internal test link, prd use store public)
-    const handleCheckUpdates = () => {
+    /**
+     * Open update page depending on platform and environment
+     * Android:
+     *   - staging    -> Google Play Internal Testing
+     *   - production -> Google Play Store
+     * iOS:
+     *   - staging    -> TestFlight
+     *   - production -> Apple App Store
+     */
+    const handleCheckUpdates = async () => {
         const envName = (ENV.ENV_NAME || '').toLowerCase();
-
-        // URL internal test for env staging
-        const STAGING_UPDATE_URL =
+        const isStaging = envName.includes('staging');
+        const isIOS = Platform.OS === 'ios';
+        const ANDROID_STAGING_UPDATE_URL =
             'https://play.google.com/apps/internaltest/4701243539126893817';
-        // URL public on Play Store for env production
-        const PRODUCTION_UPDATE_URL =
+        const ANDROID_PRODUCTION_UPDATE_URL =
             'https://play.google.com/store/apps/details?id=net.bisync.citrine';
+        const IOS_STAGING_UPDATE_URL = 'itms-beta://';
+        const IOS_PRODUCTION_UPDATE_URL = 'https://apps.apple.com/app/idxxxxx';
 
-        const UPDATE_URL = envName.includes('staging')
-            ? STAGING_UPDATE_URL
-            : PRODUCTION_UPDATE_URL;
+        try {
+            if (isIOS && isStaging) {
+                // Try to open TestFlight app first.
+                const supported = await Linking.canOpenURL(
+                    IOS_STAGING_UPDATE_URL,
+                );
+                // If TestFlight is not installed, fallback to the web page
+                if (supported) {
+                    await Linking.openURL(IOS_STAGING_UPDATE_URL);
+                } else {
+                    await Linking.openURL('https://testflight.apple.com/');
+                }
+                return;
+            }
+            // Select correct update URL for remaining cases
+            const updateUrl = isIOS
+                ? IOS_PRODUCTION_UPDATE_URL
+                : isStaging
+                ? ANDROID_STAGING_UPDATE_URL
+                : ANDROID_PRODUCTION_UPDATE_URL;
 
-        if (!UPDATE_URL) {
-            return;
+            await Linking.openURL(updateUrl);
+        } catch (error) {
+            console.error('Failed to open update URL', error);
+            Alert.alert(
+                t('common.error'),
+                error.message || 'Cannot open store',
+            );
         }
-
-        Linking.openURL(UPDATE_URL).catch(err => {
-            console.error('Failed to open update URL', err);
-            Alert.alert(t('common.error'), err.message || 'Cannot open store');
-        });
     };
 
     const handleImagePicker = () => {
@@ -106,12 +219,72 @@ const Account = () => {
         );
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <>
+                <Header
+                    title={t('setting.userProfile')}
+                    showCrudText={false}
+                    showHomeIcon={false}
+                    showBackIcon={false}
+                />
+                <View style={[commonStyles.main, styles.centerContainer]}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={styles.loadingText}>
+                        {t('common.loading')}
+                    </Text>
+                </View>
+            </>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <>
+                <Header
+                    title={t('setting.userProfile')}
+                    showCrudText={false}
+                    showHomeIcon={false}
+                    showBackIcon={false}
+                />
+                <View style={[commonStyles.main, styles.centerContainer]}>
+                    <CustomIcon
+                        type="FontAwesome5"
+                        name="exclamation-circle"
+                        size={60}
+                        color={colors.error || '#FF6B6B'}
+                    />
+                    <Text style={styles.errorText}>{t('common.error')}</Text>
+                    <Text style={styles.errorMessage}>{error}</Text>
+                    <TouchableOpacity
+                        style={styles.retryButton}
+                        onPress={handleRetry}
+                        activeOpacity={0.7}>
+                        <CustomIcon
+                            type="FontAwesome5"
+                            name="redo"
+                            size={16}
+                            color={colors.white}
+                            style={styles.retryIcon}
+                        />
+                        <Text style={styles.retryButtonText}>
+                            {t('common.retry')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </>
+        );
+    }
+
     return (
         <>
             <Header
-                title="User profile"
+                title={t('setting.userProfile')}
                 showCrudText={false}
                 showHomeIcon={false}
+                showBackIcon={false}
             />
             <View style={commonStyles.main}>
                 <ScrollView
@@ -137,6 +310,7 @@ const Account = () => {
                             displayVersion={displayVersion}
                             onCheckUpdates={handleCheckUpdates}
                             onLogout={handleLogout}
+                            userId={userData?.code || userData?.email}
                         />
                     </View>
                 </ScrollView>
@@ -167,6 +341,46 @@ const styles = StyleSheet.create({
         zIndex: 2,
         marginTop: moderateSize(80),
         overflow: 'hidden',
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: moderateSize(40),
+    },
+    loadingText: {
+        marginTop: moderateSize(16),
+        fontSize: moderateSize(16),
+        color: colors.textSecondary,
+    },
+    errorText: {
+        marginTop: moderateSize(16),
+        fontSize: moderateSize(20),
+        fontWeight: '700',
+        color: colors.textPrimary,
+    },
+    errorMessage: {
+        marginTop: moderateSize(8),
+        fontSize: moderateSize(14),
+        color: colors.textSecondary,
+        textAlign: 'center',
+    },
+    retryButton: {
+        marginTop: moderateSize(24),
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+        paddingVertical: moderateSize(12),
+        paddingHorizontal: moderateSize(24),
+        borderRadius: moderateSize(8),
+    },
+    retryIcon: {
+        marginRight: moderateSize(8),
+    },
+    retryButtonText: {
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+        color: colors.white,
     },
 });
 

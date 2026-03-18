@@ -6,6 +6,8 @@ export const ROLE_CUSTOMER = 'ROLE_CUSTOMER';
 export const ROLE_STAFF = 'ROLE_STAFF';
 export const ROLE_STAFF_MANAGER = 'ROLE_STAFF_MANAGER';
 
+export const PASSWORD_MAX_LENGTH = 255;
+
 // Sample items array
 export const SAMPLE_ITEMS = [
     { title: 'Betech ABC', subtitle: 'Company' },

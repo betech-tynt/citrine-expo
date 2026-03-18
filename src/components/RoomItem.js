@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import CustomIcon from './CustomIcon';
+import StarRating from './StarRating';
 import colors from '../constants/colors';
 import { RoomItemPropTypes } from '../utils/propTypes';
 import { moderateSize } from '../styles/moderateSize';
@@ -43,52 +44,6 @@ const RoomItemComponent = ({ room, language }) => {
     const address = getLocalizedField('address');
     const price = getLocalizedField('price');
 
-    const renderStars = () => {
-        const stars = [];
-        const rating = Number(room.rating || 0);
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 !== 0;
-
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(
-                <CustomIcon
-                    key={i}
-                    type="FontAwesome"
-                    name="star"
-                    size={moderateSize(12)}
-                    color={colors.star}
-                />,
-            );
-        }
-
-        if (hasHalfStar) {
-            stars.push(
-                <CustomIcon
-                    key="half"
-                    type="FontAwesome"
-                    name="star-half-o"
-                    size={moderateSize(12)}
-                    color={colors.star}
-                />,
-            );
-        }
-
-        const emptyStars = 5 - Math.ceil(rating);
-        for (let i = 0; i < emptyStars; i++) {
-            stars.push(
-                <CustomIcon
-                    key={`empty-${i}`}
-                    type="FontAwesome"
-                    name="star-o"
-                    size={moderateSize(12)}
-                    color={colors.star}
-                />,
-            );
-        }
-
-        return stars;
-    };
-
     return (
         <View style={styles.roomCard}>
             <View style={styles.roomImageContainer}>
@@ -123,10 +78,11 @@ const RoomItemComponent = ({ room, language }) => {
                     {price}/{t('customerSearch.perNight')}
                 </Text>
                 <View style={styles.ratingContainer}>
-                    {renderStars()}
-                    <Text style={styles.reviewsText}>
-                        ({room.reviews || 0})
-                    </Text>
+                    <StarRating
+                        rating={Number(room.rating || 0)}
+                        countText={`(${room.reviews || 0})`}
+                        size={moderateSize(12)}
+                    />
                 </View>
             </View>
         </View>
@@ -135,6 +91,7 @@ const RoomItemComponent = ({ room, language }) => {
 
 const RoomItem = memo(RoomItemComponent);
 
+RoomItemComponent.propTypes = RoomItemPropTypes;
 RoomItem.propTypes = RoomItemPropTypes;
 
 const styles = StyleSheet.create({

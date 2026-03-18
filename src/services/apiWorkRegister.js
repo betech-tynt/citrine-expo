@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo } from './deviceInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -60,6 +60,12 @@ export async function fetchWorkRegisterList({
 
     // Get token from AsyncStorage
     const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+        const message = 'Unauthenticated: missing token';
+        notifyUnauthenticated(message);
+        throw new Error(message);
+    }
 
     const variables = { version, platform, startDate, endDate, employeeId };
 

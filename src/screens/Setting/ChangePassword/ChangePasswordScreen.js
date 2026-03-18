@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { commonStyles } from '../../../theme/commonStyles';
 import Header from '../../../components/Header';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import { changePassword } from '../../../services/auth';
+import { PASSWORD_MAX_LENGTH } from '../../../constants/utils';
+import { isAuthError, handleAuthError } from '../../../utils/authErrorHandler';
+import { moderateSize } from '../../../styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import colors from '../../../constants/colors';
 
 export default function ChangePasswordScreen() {
     const navigation = useNavigation();
+    const route = useRoute();
     const { t } = useTranslation();
+
+    // Get currentPassword from route params (passed from OtpVerifyScreen for first-time setup)
+    // If passed, it's the randomPassword and we skip current password input/validation
+    const passedCurrentPassword = route.params?.currentPassword || '';
+    const isFirstTimeSetup = !!passedCurrentPassword;
+
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,6 +34,14 @@ export default function ChangePasswordScreen() {
     const [currentPasswordError, setCurrentPasswordError] = useState('');
     const [newPasswordError, setNewPasswordError] = useState('');
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+    const navigateToHome = useCallback(() => {
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+        });
+    }, [navigation]);
 
     const handleConfirm = async () => {
         // Clear old errors
@@ -29,8 +49,13 @@ export default function ChangePasswordScreen() {
         setNewPasswordError('');
         setConfirmPasswordError('');
 
-        // Validation
-        if (!currentPassword.trim()) {
+        // Use passed password for first-time setup, otherwise use entered password
+        const actualCurrentPassword = isFirstTimeSetup
+            ? passedCurrentPassword
+            : currentPassword;
+
+        // Validation for current password (only in normal flow)
+        if (!isFirstTimeSetup && !actualCurrentPassword.trim()) {
             setCurrentPasswordError(
                 t('changePassword.validation.currentPasswordRequired'),
             );
@@ -49,37 +74,40 @@ export default function ChangePasswordScreen() {
             return;
         }
 
+        if (newPassword.length > PASSWORD_MAX_LENGTH) {
+            setNewPasswordError(
+                t('changePassword.validation.maxLength', {
+                    max: PASSWORD_MAX_LENGTH,
+                }),
+            );
+            return;
+        }
+
         if (newPassword !== confirmPassword) {
             setConfirmPasswordError(t('changePassword.validation.notMatch'));
             return;
         }
 
-        if (currentPassword === newPassword) {
+        if (actualCurrentPassword === newPassword) {
             setNewPasswordError(t('changePassword.validation.sameAsCurrent'));
             return;
         }
 
         setIsLoading(true);
         try {
-            const response = await changePassword(currentPassword, newPassword);
+            const response = await changePassword(
+                actualCurrentPassword,
+                newPassword,
+            );
             const { status, message } = response;
 
             // Check status from API response
             if (status === 1) {
-                // Success: status = 1
-                Alert.alert(t('common.success'), message, [
-                    {
-                        text: t('common.ok'),
-                        onPress: () => {
-                            // Reset form after success
-                            setCurrentPassword('');
-                            setNewPassword('');
-                            setConfirmPassword('');
-                            // Navigate to Home screen
-                            navigation.navigate('Main', { screen: 'Home' });
-                        },
-                    },
-                ]);
+                // Show success message for 2 seconds before navigating
+                setShowSuccessMessage(true);
+                setTimeout(() => {
+                    navigateToHome();
+                }, 2000);
             } else {
                 // Status = 0 means current password is incorrect
                 setCurrentPasswordError(message);
@@ -89,6 +117,13 @@ export default function ChangePasswordScreen() {
             const errorMessage =
                 (error && error.message && String(error.message)) ||
                 t('changePassword.errors.generic');
+
+            // Handle auth errors – show session expired alert and redirect to Login
+            if (isAuthError(errorMessage)) {
+                handleAuthError(navigation);
+                return;
+            }
+
             Alert.alert(t('common.error'), errorMessage);
         } finally {
             setIsLoading(false);
@@ -97,32 +132,48 @@ export default function ChangePasswordScreen() {
 
     return (
         <View style={styles.container}>
-            <Header title={t('changePassword.title')} showCrudText={false} />
+            <Header
+                title={t('changePassword.title')}
+                showCrudText={false}
+                showHomeIcon={false}
+            />
             <View style={commonStyles.main}>
-                <View style={styles.fieldGroup}>
-                    <Text style={styles.label}>
-                        {t('changePassword.currentPassword')}
-                    </Text>
-                    <Input
-                        placeholder={t('changePassword.enterCurrentPassword')}
-                        secureTextEntry={!showCurrentPassword}
-                        value={currentPassword}
-                        onChangeText={text => {
-                            setCurrentPassword(text);
-                            if (currentPasswordError)
-                                setCurrentPasswordError('');
-                        }}
-                        endIcon={showCurrentPassword ? 'eye-slash' : 'eye'}
-                        onEndIconPress={() =>
-                            setShowCurrentPassword(prev => !prev)
-                        }
-                    />
-                    {currentPasswordError && (
-                        <Text style={styles.errorText}>
-                            {currentPasswordError}
+                {/* Only show current password field in normal flow (not first-time setup) */}
+                {!isFirstTimeSetup && (
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.label}>
+                            {t('changePassword.currentPassword')}
                         </Text>
-                    )}
-                </View>
+                        <Input
+                            placeholder={t(
+                                'changePassword.enterCurrentPassword',
+                            )}
+                            secureTextEntry={!showCurrentPassword}
+                            value={currentPassword}
+                            maxLength={PASSWORD_MAX_LENGTH}
+                            onChangeText={text => {
+                                setCurrentPassword(text);
+                                if (currentPasswordError)
+                                    setCurrentPasswordError('');
+                            }}
+                            endIcon={showCurrentPassword ? 'eye-slash' : 'eye'}
+                            onEndIconPress={() =>
+                                setShowCurrentPassword(prev => !prev)
+                            }
+                        />
+                        {currentPasswordError ? (
+                            <Text style={styles.errorText}>
+                                {currentPasswordError}
+                            </Text>
+                        ) : currentPassword.length >= PASSWORD_MAX_LENGTH ? (
+                            <Text style={styles.maxLengthHint}>
+                                {t('changePassword.validation.maxLength', {
+                                    max: PASSWORD_MAX_LENGTH,
+                                })}
+                            </Text>
+                        ) : null}
+                    </View>
+                )}
 
                 <View style={styles.fieldGroup}>
                     <Text style={styles.label}>
@@ -132,6 +183,7 @@ export default function ChangePasswordScreen() {
                         placeholder={t('changePassword.enterNewPassword')}
                         secureTextEntry={!showNewPassword}
                         value={newPassword}
+                        maxLength={PASSWORD_MAX_LENGTH}
                         onChangeText={text => {
                             setNewPassword(text);
                             if (newPasswordError) setNewPasswordError('');
@@ -139,9 +191,15 @@ export default function ChangePasswordScreen() {
                         endIcon={showNewPassword ? 'eye-slash' : 'eye'}
                         onEndIconPress={() => setShowNewPassword(prev => !prev)}
                     />
-                    {newPasswordError && (
+                    {newPasswordError ? (
                         <Text style={styles.errorText}>{newPasswordError}</Text>
-                    )}
+                    ) : newPassword.length >= PASSWORD_MAX_LENGTH ? (
+                        <Text style={styles.maxLengthHint}>
+                            {t('changePassword.validation.maxLength', {
+                                max: PASSWORD_MAX_LENGTH,
+                            })}
+                        </Text>
+                    ) : null}
                 </View>
 
                 <View style={styles.fieldGroup}>
@@ -152,6 +210,7 @@ export default function ChangePasswordScreen() {
                         placeholder={t('changePassword.confirmPassword')}
                         secureTextEntry={!showConfirmPassword}
                         value={confirmPassword}
+                        maxLength={PASSWORD_MAX_LENGTH}
                         onChangeText={text => {
                             setConfirmPassword(text);
                             if (confirmPasswordError)
@@ -162,11 +221,17 @@ export default function ChangePasswordScreen() {
                             setShowConfirmPassword(prev => !prev)
                         }
                     />
-                    {confirmPasswordError && (
+                    {confirmPasswordError ? (
                         <Text style={styles.errorText}>
                             {confirmPasswordError}
                         </Text>
-                    )}
+                    ) : confirmPassword.length >= PASSWORD_MAX_LENGTH ? (
+                        <Text style={styles.maxLengthHint}>
+                            {t('changePassword.validation.maxLength', {
+                                max: PASSWORD_MAX_LENGTH,
+                            })}
+                        </Text>
+                    ) : null}
                 </View>
 
                 <Button
@@ -185,6 +250,25 @@ export default function ChangePasswordScreen() {
                     />
                 )}
             </View>
+
+            {showSuccessMessage && (
+                <View style={styles.successOverlay}>
+                    <View style={styles.successBox}>
+                        <View style={styles.successIconWrapper}>
+                            <Icon
+                                name="check-circle"
+                                size={moderateSize(48)}
+                                color="#4CAF50"
+                            />
+                        </View>
+                        <Text style={styles.successText}>
+                            {isFirstTimeSetup
+                                ? t('auth.registrationSuccess')
+                                : t('auth.passwordChangeSuccess')}
+                        </Text>
+                    </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -197,21 +281,59 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     label: {
-        marginBottom: 8,
-        fontSize: 14,
+        marginBottom: moderateSize(8),
+        fontSize: moderateSize(14),
         fontWeight: '600',
     },
     confirmButton: {
-        marginTop: 20,
+        marginTop: moderateSize(20),
     },
     loader: {
-        marginTop: 10,
+        marginTop: moderateSize(10),
     },
     errorText: {
-        marginTop: -18,
-        marginBottom: 12,
-        color: '#D32F2F',
-        fontSize: 12,
+        marginTop: moderateSize(-18),
+        marginBottom: moderateSize(12),
+        color: colors.error,
+        fontSize: moderateSize(12),
         fontWeight: '500',
+    },
+    maxLengthHint: {
+        marginTop: moderateSize(-18),
+        marginBottom: moderateSize(12),
+        color: colors.error,
+        fontSize: moderateSize(11),
+    },
+    successOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
+    },
+    successBox: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: moderateSize(16),
+        paddingVertical: moderateSize(32),
+        paddingHorizontal: moderateSize(40),
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    successIconWrapper: {
+        marginBottom: moderateSize(12),
+    },
+    successText: {
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+        color: '#333333',
+        textAlign: 'center',
     },
 });

@@ -1,8 +1,8 @@
 {
   "expo": {
-  "name": "citrine_app",
-  "slug": "citrine-app",
-  "version": "0.0.30",
+    "name": "citrine_app",
+    "slug": "citrine-app",
+    "version": "0.0.30",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "demoapp",
@@ -38,7 +38,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

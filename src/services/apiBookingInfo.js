@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo } from './deviceInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -54,10 +54,6 @@ const CUSTOMER_BOOKING_INFO_QUERY = `
                         }
                     }
                     room_count
-                    guest_count {
-                        adults
-                        children
-                    }
                     price_per_night
                     total_price
                     notes
@@ -92,6 +88,12 @@ export async function fetchCustomerBookingInfo(bookingId) {
     const { version, platform } = await getDeviceInfo();
     const token = await AsyncStorage.getItem('token');
 
+    if (!token) {
+        const message = 'Unauthenticated: missing token';
+        notifyUnauthenticated(message);
+        throw new Error(message);
+    }
+
     const variables = {
         booking_id: Number(bookingId),
         version,
@@ -125,5 +127,3 @@ export async function fetchCustomerBookingInfo(bookingId) {
         );
     }
 }
-
-

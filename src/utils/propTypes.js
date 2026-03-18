@@ -137,6 +137,16 @@ export const CustomerSearchFilterModalPropTypes = {
     onApply: PropTypes.func.isRequired,
 };
 
+// Booking calendar modal (CustomerBookingScreen)
+export const BookingCalendarModalPropTypes = {
+    visible: PropTypes.bool.isRequired,
+    mode: PropTypes.oneOf(['checkIn', 'checkOut']).isRequired,
+    tempISO: PropTypes.string,
+    onChangeTempISO: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func.isRequired,
+};
+
 // Define prop types
 export const SearchBarPropTypes = {
     placeholder: PropTypes.string, // placeholder is a string
@@ -144,6 +154,7 @@ export const SearchBarPropTypes = {
     onChangeText: PropTypes.func, // onChangeText handler for controlled input
     onSubmitEditing: PropTypes.func, // onSubmitEditing handler for Enter key press
     onPress: PropTypes.func, // onPress handler for tapping the search bar
+    inputRef: PropTypes.object, // ref for the TextInput element
 };
 
 // Define prop types
@@ -289,6 +300,7 @@ export const AmenityGridPropTypes = {
 export const BottomBookingBarPropTypes = {
     priceText: PropTypes.string.isRequired,
     perNightText: PropTypes.string.isRequired,
+    roomsText: PropTypes.string,
     buttonText: PropTypes.string.isRequired,
     onPress: PropTypes.func.isRequired,
 };
@@ -303,14 +315,22 @@ export const CustomerRoomInfoStarRatingPropTypes = {
 
 // Define prop types for the LodgingCard component
 export const LodgingCardPropTypes = {
-    name: PropTypes.string.isRequired,
-    price: PropTypes.string.isRequired,
-    rating: PropTypes.number.isRequired,
+    name: PropTypes.string,
+    price: PropTypes.string,
+    priceLabel: PropTypes.string,
+    rating: PropTypes.number,
+    coverImage: PropTypes.string,
 };
 
 // Define prop types for the PromotionCard component
 export const PromotionCardPropTypes = {
+    badge: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    conditions: PropTypes.arrayOf(PropTypes.string).isRequired,
+    type: PropTypes.string.isRequired,
+    t: PropTypes.func.isRequired,
 };
 
 // Define prop types for the Account Profile component
@@ -323,7 +343,11 @@ export const AccountProfilePropTypes = {
         phone: PropTypes.string,
         address: PropTypes.string,
         dob: PropTypes.string,
-        role: PropTypes.string,
+        role: PropTypes.shape({
+            id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            name: PropTypes.string,
+            code: PropTypes.string,
+        }),
         avatarImage: PropTypes.string,
     }).isRequired,
     userPhoto: PropTypes.oneOfType([
@@ -378,28 +402,29 @@ export const TotalAmountDisplayPropTypes = {
 export const BookingHistoryCardPropTypes = {
     booking: PropTypes.shape({
         // From API: src/services/apiBookingHistory.js
-        id: PropTypes.number.isRequired,
+        id: PropTypes.number,
         code: PropTypes.string,
-        section_name: PropTypes.string.isRequired,
+        section_name: PropTypes.string,
         // status can be a value from BOOKING_STATUS or a raw string/number from API
         status: PropTypes.oneOfType([
             PropTypes.oneOf(Object.values(BOOKING_STATUS)),
             PropTypes.number,
-        ]).isRequired,
+            PropTypes.string,
+        ]),
         check_in_at: PropTypes.oneOfType([
             PropTypes.string,
             PropTypes.instanceOf(Date),
-        ]).isRequired,
+        ]),
         check_out_at: PropTypes.oneOfType([
             PropTypes.string,
             PropTypes.instanceOf(Date),
-        ]).isRequired,
+        ]),
         guest_count: PropTypes.shape({
             adults: PropTypes.number,
             children: PropTypes.number,
         }),
         room_details: PropTypes.string,
-        total_price: PropTypes.number.isRequired,
-    }).isRequired,
-    t: PropTypes.func.isRequired,
+        total_price: PropTypes.number,
+    }),
+    t: PropTypes.func,
 };

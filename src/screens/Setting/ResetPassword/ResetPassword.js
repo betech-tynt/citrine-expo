@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { commonStyles } from '../../../theme/commonStyles';
 import { log } from '../../../utils/handleLog';
 import { moderateSize } from '../../../styles';
@@ -9,15 +9,20 @@ import Header from '../../../components/Header';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import colors from '../../../constants/colors';
+import { forgotPassword } from '../../../services/auth';
 
 export default function ResetPassword() {
     const { t } = useTranslation();
     const navigation = useNavigation();
+    const route = useRoute();
+    const email = route.params?.email;
+    const otp = route.params?.otp;
 
     const [newPassword, setNewPassword] = useState('');
     const [reEnterNewPassword, setReEnterNewPassword] = useState('');
     const [newPasswordError, setNewPasswordError] = useState('');
     const [reEnterNewPasswordError, setReEnterNewPasswordError] = useState('');
+    const [submitError, setSubmitError] = useState('');
 
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showReEnterNewPassword, setShowReEnterNewPassword] = useState(false);
@@ -26,6 +31,7 @@ export default function ResetPassword() {
         // Clear old errors
         setNewPasswordError('');
         setReEnterNewPasswordError('');
+        setSubmitError('');
 
         // Validation
         if (!newPassword.trim()) {
@@ -52,19 +58,33 @@ export default function ResetPassword() {
             return;
         }
 
-        // TODO: Implement reset password functionality
-        log('Reset password button pressed');
+        if (!email || !otp) {
+            setSubmitError(t('common.error'));
+            return;
+        }
 
-        // Navigate to success screen
-        navigation.navigate('SuccessScreen', {
-            message: 'Your password has been reset successfully!',
-        });
+        try {
+            const result = await forgotPassword(email, newPassword, otp);
+            if (result?.status === 1) {
+                navigation.navigate('SuccessScreen', {
+                    message: result?.message || 'Your password has been reset successfully!',
+                });
+            } else {
+                setSubmitError(result?.message || t('common.error'));
+            }
+        } catch (e) {
+            log('Forgot password confirm error', e);
+            setSubmitError(e?.message || t('common.error'));
+        }
     };
 
     return (
         <View style={styles.container}>
             <Header title={t('resetPassword.title')} showCrudText={false} />
             <View style={commonStyles.main}>
+                {submitError ? (
+                    <Text style={styles.submitError}>{submitError}</Text>
+                ) : null}
                 <View style={styles.fieldGroup}>
                     <Text style={styles.label}>
                         {t('resetPassword.newPassword')}
@@ -87,10 +107,12 @@ export default function ResetPassword() {
 
                 <View style={styles.fieldGroup}>
                     <Text style={styles.label}>
-                        {t('resetPassword.reEnterNewPassword')}
+                        {t('citrine.msg000339', {
+                            defaultValue: t('citrine.msg000339'),
+                        })}
                     </Text>
                     <Input
-                        placeholder={t('resetPassword.reEnterNewPassword')}
+                        placeholder={t('citrine.msg000339')}
                         secureTextEntry={!showReEnterNewPassword}
                         value={reEnterNewPassword}
                         onChangeText={text => {
@@ -126,6 +148,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    submitError: {
+        marginTop: moderateSize(4),
+        marginBottom: moderateSize(12),
+        textAlign: 'center',
+        color: colors.error || colors.danger,
+        fontSize: moderateSize(12),
+        fontWeight: '600',
+    },
     fieldGroup: {
         width: '100%',
     },
@@ -136,12 +166,10 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
         marginTop: moderateSize(20),
     },
     confirmButton: {
-        width: '50%',
+        width: '100%',
     },
     errorText: {
         marginTop: -moderateSize(18),

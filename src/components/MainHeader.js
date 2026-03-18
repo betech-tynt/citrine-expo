@@ -1,16 +1,21 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Platform,
+    StatusBar,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import colors from '../constants/colors';
-import { moderateSize } from '../styles';
 import { MainHeaderPropTypes } from '../utils/propTypes';
+import { moderateSize } from '../styles';
+import colors from '../constants/colors';
 
 // Approximate header background height so it looks consistent across devices
 const STATUS_BAR_HEIGHT =
-    Platform.OS === 'android'
-        ? StatusBar.currentHeight || 24
-        : 44;
+    Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 const HEADER_BACKGROUND_HEIGHT = (STATUS_BAR_HEIGHT || 0) + moderateSize(100);
 
 // MainHeader component with username and notificationCount props
@@ -59,7 +64,6 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
-        // Fixed logical height instead of percentage to avoid excessive stretch
         height: HEADER_BACKGROUND_HEIGHT,
         backgroundColor: colors.primary,
         zIndex: 1,

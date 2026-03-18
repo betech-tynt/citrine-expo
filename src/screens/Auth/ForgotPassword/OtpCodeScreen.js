@@ -1,91 +1,187 @@
-import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Header from '../../../components/Header';
-import Input from '../../../components/Input';
 import Button from '../../../components/Button';
-import { commonStyles } from '../../../theme/commonStyles';
-import { log } from '../../../utils/handleLog';
-import { moderateSize } from '../../../styles';
-import { checkOtpResetPassword } from '../../../services/auth';
+import OtpInput from '../../../components/OtpInput';
 import colors from '../../../constants/colors';
+import { commonStyles } from '../../../theme/commonStyles';
+import { moderateSize } from '../../../styles';
+import {
+    sendOtp,
+    TYPE_FORGOT_PASSWORD,
+    verifyOtp,
+} from '../../../services/auth';
 
-const maskEmail = value => {
-    const v = String(value || '');
-    if (!v.includes('@')) return v;
-    const [name, domain] = v.split('@');
-    const maskedName =
-        name.length <= 2 ? `${name[0] || ''}*` : `${name.slice(0, 2)}***`;
-    return `${maskedName}@${domain}`;
+const DEFAULT_EXPIRES_IN_MINUTES = 2;
+
+const formatMMSS = totalSeconds => {
+    const s = Math.max(0, Number(totalSeconds) || 0);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+};
+
+const resolveExpiresInMinutes = raw => {
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
 };
 
 export default function OtpCodeScreen() {
-    const route = useRoute();
     const { t } = useTranslation();
+    const route = useRoute();
     const navigation = useNavigation();
-    const username = route.params?.username;
-    const email = route.params?.email;
-    const maskedEmail = useMemo(() => maskEmail(email), [email]);
+
+    const email = route.params?.email || '';
+    const showOtpMessage = route.params?.showOtpMessage || false;
+    const initialExpiresInMinutes =
+        resolveExpiresInMinutes(route.params?.expiresInMinutes) ??
+        DEFAULT_EXPIRES_IN_MINUTES;
 
     const [otp, setOtp] = useState('');
-    const [errorText, setErrorText] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [otpMessage, setOtpMessage] = useState(showOtpMessage);
+    const [expiresInMinutes, setExpiresInMinutes] = useState(
+        initialExpiresInMinutes,
+    );
+    const [endAt, setEndAt] = useState(
+        () => Date.now() + initialExpiresInMinutes * 60 * 1000,
+    );
+    const [secondsLeft, setSecondsLeft] = useState(
+        initialExpiresInMinutes * 60,
+    );
 
-    const handleConfirm = async () => {
-        setErrorText('');
-        const genericError = t('common.error');
-        if (!otp.trim()) {
-            setErrorText(t('otp.codeRequired'));
-            return;
+    useEffect(() => {
+        if (otpMessage) {
+            const timer = setTimeout(() => setOtpMessage(false), 3000);
+            return () => clearTimeout(timer);
         }
+    }, [otpMessage]);
 
+    const timeLeftText = useMemo(() => formatMMSS(secondsLeft), [secondsLeft]);
+
+    useEffect(() => {
+        const tick = () => {
+            const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+            setSecondsLeft(left);
+        };
+
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [endAt]);
+
+    const resetTimer = minutes => {
+        const m =
+            resolveExpiresInMinutes(minutes) ??
+            resolveExpiresInMinutes(expiresInMinutes) ??
+            DEFAULT_EXPIRES_IN_MINUTES;
+        setExpiresInMinutes(m);
+        setSecondsLeft(m * 60);
+        setEndAt(Date.now() + m * 60 * 1000);
+    };
+
+    const handleResend = async () => {
+        if (!email) return;
+
+        setIsLoading(true);
         try {
-            const result = await checkOtpResetPassword(username, otp);
+            const result = await sendOtp(email, TYPE_FORGOT_PASSWORD);
             if (result?.status === 1) {
-                navigation.navigate('ResetPassword', { username, email, otp });
+                resetTimer(result?.expires_in_minutes);
+                setOtpMessage(true);
             } else {
-                setErrorText(result?.message || genericError);
+                Alert.alert(
+                    t('common.error'),
+                    result?.message || t('common.error'),
+                );
             }
         } catch (error) {
-            log('Check OTP error', error);
-            setErrorText(error?.message || genericError);
+            Alert.alert(t('common.error'), error?.message || t('common.error'));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerify = async () => {
+        if (!email || otp.trim().length < 6) return;
+
+        setIsLoading(true);
+        try {
+            const result = await verifyOtp(email, otp, TYPE_FORGOT_PASSWORD);
+            if (result?.status === 1) {
+                navigation.navigate('ResetPassword', { email, otp });
+            } else {
+                Alert.alert(
+                    t('common.error'),
+                    result?.message || t('common.error'),
+                );
+            }
+        } catch (error) {
+            Alert.alert(t('common.error'), error?.message || t('common.error'));
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <View style={styles.container}>
-            <Header title={t('otp.title')} showCrudText={false} />
+            <Header title={t('otp.verifyTitle')} showCrudText={false} />
+
             <View style={commonStyles.main}>
-                {maskedEmail ? (
-                    <Text style={styles.helperText}>
-                        {t('otp.sentToEmail', { email: maskedEmail })}
-                    </Text>
+                {otpMessage ? (
+                    <View style={styles.successBanner}>
+                        <Text style={styles.successText}>
+                            {t('otp.otpSent')}
+                        </Text>
+                    </View>
                 ) : null}
 
-                <View style={styles.fieldGroup}>
-                    <Text style={styles.label}>{t('otp.codeLabel')}</Text>
-                    <Input
-                        value={otp}
-                        onChangeText={text => {
-                            const digitsOnly = String(text || '').replace(
-                                /[^0-9]/g,
-                                '',
-                            );
-                            setOtp(digitsOnly);
-                        }}
-                    />
-                    {errorText ? (
-                        <Text style={styles.errorText}>{errorText}</Text>
-                    ) : null}
+                <Text style={styles.title}>{t('otp.verifyYourEmail')}</Text>
+                <Text style={styles.subtitle}>
+                    {t('otp.sentToEmail', { email })}
+                </Text>
+
+                <OtpInput
+                    value={otp}
+                    length={6}
+                    onChangeText={setOtp}
+                    containerStyle={styles.otpRow}
+                />
+
+                <Text style={styles.hintText}>{t('otp.enterCodeHint')}</Text>
+
+                <Button
+                    title={t('otp.verify')}
+                    style={styles.verifyButton}
+                    onPress={handleVerify}
+                    disabled={isLoading || otp.trim().length < 6}
+                />
+
+                <View style={styles.resendRow}>
+                    <Text style={styles.resendText}>
+                        {secondsLeft > 0
+                            ? t('otp.expiresIn', {
+                                  time: timeLeftText,
+                              })
+                            : t('otp.expired')}
+                    </Text>
                 </View>
 
-                <View style={styles.buttonContainer}>
-                    <Button
-                        title={t('otp.send')}
-                        style={styles.confirmButton}
-                        onPress={handleConfirm}
-                    />
-                </View>
+                <TouchableOpacity
+                    onPress={handleResend}
+                    activeOpacity={0.7}
+                    disabled={isLoading}
+                    style={styles.resendButton}>
+                    <Text
+                        style={[
+                            styles.resendLink,
+                            isLoading && styles.resendLinkDisabled,
+                        ]}>
+                        {t('otp.resendPrompt')}
+                    </Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -94,35 +190,69 @@ export default function OtpCodeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: colors.primary,
     },
-    fieldGroup: {
-        width: '100%',
+    successBanner: {
+        backgroundColor: colors.success || '#4CAF50',
+        padding: moderateSize(12),
+        borderRadius: moderateSize(8),
+        marginBottom: moderateSize(16),
     },
-    label: {
-        marginTop: moderateSize(15),
-        marginBottom: moderateSize(8),
+    successText: {
+        color: '#FFFFFF',
         fontSize: moderateSize(14),
         fontWeight: '600',
+        textAlign: 'center',
     },
-    sendButton: {
-        marginTop: moderateSize(5),
-        alignSelf: 'flex-end',
-        width: 'auto',
+    title: {
+        fontSize: moderateSize(24),
+        fontWeight: '800',
+        color: colors.primary,
+        marginBottom: moderateSize(6),
     },
-    helperText: {
-        marginBottom: moderateSize(4),
+    subtitle: {
+        fontSize: moderateSize(12),
+        fontWeight: '500',
+        color: colors.textPrimary,
+        marginBottom: moderateSize(18),
     },
-    errorText: {
-        color: colors.error,
-        marginTop: moderateSize(4),
+    otpRow: {
+        alignSelf: 'center',
+        width: moderateSize(310),
+        marginTop: moderateSize(10),
+        marginBottom: moderateSize(12),
     },
-    buttonContainer: {
-        width: '100%',
+    hintText: {
+        textAlign: 'center',
+        fontSize: moderateSize(12),
+        color: colors.textSecondary,
+        marginTop: moderateSize(8),
+    },
+    verifyButton: {
+        marginTop: moderateSize(26),
+        borderRadius: moderateSize(15),
+        paddingVertical: moderateSize(14),
+    },
+    resendRow: {
+        marginTop: moderateSize(14),
         flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: moderateSize(20),
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    confirmButton: {
-        width: '50%',
+    resendText: {
+        fontSize: moderateSize(12),
+        color: colors.textPrimary,
+    },
+    resendButton: {
+        marginTop: moderateSize(8),
+        alignItems: 'center',
+    },
+    resendLink: {
+        fontSize: moderateSize(12),
+        fontWeight: '700',
+        color: colors.primary,
+    },
+    resendLinkDisabled: {
+        opacity: 0.5,
     },
 });

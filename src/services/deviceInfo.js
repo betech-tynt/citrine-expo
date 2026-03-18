@@ -1,16 +1,26 @@
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 
 export function getPlatform() {
     return Platform.OS;
 }
 
 export async function getDeviceInfo() {
-    const version =
-        Constants.expoConfig?.version ||
-        Constants.expoConfig?.runtimeVersion ||
-        Constants.nativeAppVersion ||
-        '1.0.0';
+    const version = Application.nativeApplicationVersion || '1.0.0';
     const platform = getPlatform();
     return { version, platform };
+}
+
+export async function getUniqueId() {
+    if (Platform.OS === 'android') {
+        return Application.getAndroidId();
+    } else if (Platform.OS === 'ios') {
+        try {
+            return await Application.getIosIdForVendorAsync();
+        } catch (e) {
+            return 'unknown';
+        }
+    } else {
+        return 'unknown';
+    }
 }

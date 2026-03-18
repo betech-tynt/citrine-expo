@@ -15,10 +15,11 @@ import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import CustomIcon from '../CustomIcon';
 import { CustomerSearchFilterModalPropTypes } from '../../utils/propTypes';
+import { formatDate } from '../../utils/formatDate';
 
-const pad2 = (n) => String(n).padStart(2, '0');
+const pad2 = n => String(n).padStart(2, '0');
 
-const toISO = (d) => {
+const toISO = d => {
     if (!(d instanceof Date)) return '';
     const yyyy = d.getFullYear();
     const mm = pad2(d.getMonth() + 1);
@@ -26,52 +27,11 @@ const toISO = (d) => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
-const safeParseISODate = (iso) => {
+const safeParseISODate = iso => {
     if (!iso || typeof iso !== 'string') return null;
     // Force local midnight to avoid timezone shifting
     const d = new Date(`${iso}T00:00:00`);
     return Number.isNaN(d.getTime()) ? null : d;
-};
-
-const formatISOToDisplay = (iso) => {
-    if (!iso) return '';
-    const [yyyy, mm, dd] = iso.split('-');
-    if (!yyyy || !mm || !dd) return '';
-    return `${dd}/${mm}/${yyyy}`;
-};
-
-const buildMarkedDates = (startISO, endISO) => {
-    if (!startISO && !endISO) return {};
-
-    const start = safeParseISODate(startISO);
-    const end = safeParseISODate(endISO);
-
-    if (start && !end) {
-        return {
-            [startISO]: { selected: true, selectedColor: colors.primary },
-        };
-    }
-
-    if (!start || !end) return {};
-
-    const s = start <= end ? start : end;
-    const e = start <= end ? end : start;
-    const sISO = start <= end ? startISO : endISO;
-    const eISO = start <= end ? endISO : startISO;
-
-    const marked = {};
-    const cur = new Date(s.getTime());
-    while (cur <= e) {
-        const iso = toISO(cur);
-        marked[iso] = {
-            color: colors.primary,
-            textColor: colors.white,
-            startingDay: iso === sISO,
-            endingDay: iso === eISO,
-        };
-        cur.setDate(cur.getDate() + 1);
-    }
-    return marked;
 };
 
 /**
@@ -95,23 +55,23 @@ export default function CustomerSearchFilterModal({
     const [calendarField, setCalendarField] = useState('checkIn'); // 'checkIn' | 'checkOut'
     const [calendarTempISO, setCalendarTempISO] = useState('');
 
-    const openCalendar = useCallback((field) => {
-        const todayISO = toISO(new Date());
-        const initialISO =
-            (field === 'checkIn' ? filter.checkInISO : filter.checkOutISO) ||
-            todayISO;
-        setCalendarField(field);
-        setCalendarTempISO(initialISO);
-        setCalendarVisible(true);
-    }, [filter.checkInISO, filter.checkOutISO]);
+    const openCalendar = useCallback(
+        field => {
+            const todayISO = toISO(new Date());
+            const initialISO =
+                (field === 'checkIn'
+                    ? filter.checkInISO
+                    : filter.checkOutISO) || todayISO;
+            setCalendarField(field);
+            setCalendarTempISO(initialISO);
+            setCalendarVisible(true);
+        },
+        [filter.checkInISO, filter.checkOutISO],
+    );
 
     const closeCalendar = useCallback(() => {
         setCalendarVisible(false);
     }, []);
-
-    const markedDates = useMemo(() => {
-        return buildMarkedDates(filter.checkInISO, filter.checkOutISO);
-    }, [filter.checkInISO, filter.checkOutISO]);
 
     const confirmCalendar = useCallback(() => {
         if (!calendarTempISO) {
@@ -148,19 +108,31 @@ export default function CustomerSearchFilterModal({
         closeCalendar();
     }, [calendarTempISO, calendarField, closeCalendar, filter, onChange]);
 
-    const dec = useCallback((key) => {
-        const current = Number(filter?.[key] ?? 0);
-        const nextVal = Math.max(0, current - 1);
-        onChange({ ...filter, [key]: nextVal });
-    }, [filter, onChange]);
+    const dec = useCallback(
+        key => {
+            const current = Number(filter?.[key] ?? 0);
+            const nextVal = Math.max(0, current - 1);
+            onChange({ ...filter, [key]: nextVal });
+        },
+        [filter, onChange],
+    );
 
-    const inc = useCallback((key) => {
-        const current = Number(filter?.[key] ?? 0);
-        onChange({ ...filter, [key]: current + 1 });
-    }, [filter, onChange]);
+    const inc = useCallback(
+        key => {
+            const current = Number(filter?.[key] ?? 0);
+            onChange({ ...filter, [key]: current + 1 });
+        },
+        [filter, onChange],
+    );
 
-    const checkInDisplay = useMemo(() => formatISOToDisplay(filter.checkInISO), [filter.checkInISO]);
-    const checkOutDisplay = useMemo(() => formatISOToDisplay(filter.checkOutISO), [filter.checkOutISO]);
+    const checkInDisplay = useMemo(
+        () => formatDate(filter.checkInISO),
+        [filter.checkInISO],
+    );
+    const checkOutDisplay = useMemo(
+        () => formatDate(filter.checkOutISO),
+        [filter.checkOutISO],
+    );
 
     return (
         <>
@@ -197,13 +169,15 @@ export default function CustomerSearchFilterModal({
                                 {t('citrine.msg000324')}
                             </Text>
                             <View style={styles.dateRow}>
-                                <Pressable
+                                <TouchableOpacity
+                                    activeOpacity={0.7}
                                     style={styles.dateInput}
                                     onPress={() => openCalendar('checkIn')}>
                                     <Text
                                         style={[
                                             styles.dateText,
-                                            !checkInDisplay && styles.placeholderText,
+                                            !checkInDisplay &&
+                                                styles.placeholderText,
                                         ]}>
                                         {checkInDisplay || 'dd/mm/yyyy'}
                                     </Text>
@@ -213,15 +187,17 @@ export default function CustomerSearchFilterModal({
                                         size={16}
                                         color={colors.textSecondary}
                                     />
-                                </Pressable>
+                                </TouchableOpacity>
 
-                                <Pressable
+                                <TouchableOpacity
+                                    activeOpacity={0.7}
                                     style={styles.dateInput}
                                     onPress={() => openCalendar('checkOut')}>
                                     <Text
                                         style={[
                                             styles.dateText,
-                                            !checkOutDisplay && styles.placeholderText,
+                                            !checkOutDisplay &&
+                                                styles.placeholderText,
                                         ]}>
                                         {checkOutDisplay || 'dd/mm/yyyy'}
                                     </Text>
@@ -231,7 +207,7 @@ export default function CustomerSearchFilterModal({
                                         size={16}
                                         color={colors.textSecondary}
                                     />
-                                </Pressable>
+                                </TouchableOpacity>
                             </View>
 
                             <View style={styles.group}>
@@ -243,7 +219,9 @@ export default function CustomerSearchFilterModal({
                                         onPress={() => dec('adults')}
                                         style={styles.counterBtn}
                                         activeOpacity={0.8}>
-                                        <Text style={styles.counterBtnText}>−</Text>
+                                        <Text style={styles.counterBtnText}>
+                                            −
+                                        </Text>
                                     </TouchableOpacity>
                                     <Text style={styles.counterValue}>
                                         {filter.adults ?? 0}
@@ -252,7 +230,9 @@ export default function CustomerSearchFilterModal({
                                         onPress={() => inc('adults')}
                                         style={styles.counterBtn}
                                         activeOpacity={0.8}>
-                                        <Text style={styles.counterBtnText}>+</Text>
+                                        <Text style={styles.counterBtnText}>
+                                            +
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -266,7 +246,9 @@ export default function CustomerSearchFilterModal({
                                         onPress={() => dec('children')}
                                         style={styles.counterBtn}
                                         activeOpacity={0.8}>
-                                        <Text style={styles.counterBtnText}>−</Text>
+                                        <Text style={styles.counterBtnText}>
+                                            −
+                                        </Text>
                                     </TouchableOpacity>
                                     <Text style={styles.counterValue}>
                                         {filter.children ?? 0}
@@ -275,14 +257,19 @@ export default function CustomerSearchFilterModal({
                                         onPress={() => inc('children')}
                                         style={styles.counterBtn}
                                         activeOpacity={0.8}>
-                                        <Text style={styles.counterBtnText}>+</Text>
+                                        <Text style={styles.counterBtnText}>
+                                            +
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
                             <View style={styles.actionsRow}>
                                 <TouchableOpacity
-                                    style={[styles.actionBtn, styles.actionBtnCancel]}
+                                    style={[
+                                        styles.actionBtn,
+                                        styles.actionBtnCancel,
+                                    ]}
                                     onPress={onClose}
                                     activeOpacity={0.85}>
                                     <Text style={styles.actionCancelText}>
@@ -290,7 +277,10 @@ export default function CustomerSearchFilterModal({
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.actionBtn, styles.actionBtnApply]}
+                                    style={[
+                                        styles.actionBtn,
+                                        styles.actionBtnApply,
+                                    ]}
                                     onPress={onApply}
                                     activeOpacity={0.85}>
                                     <Text style={styles.actionApplyText}>
@@ -308,7 +298,10 @@ export default function CustomerSearchFilterModal({
                 transparent
                 animationType="fade"
                 onRequestClose={closeCalendar}>
-                <Pressable style={styles.calendarBackdrop} onPress={closeCalendar} />
+                <Pressable
+                    style={styles.calendarBackdrop}
+                    onPress={closeCalendar}
+                />
                 <View style={styles.calendarCardWrap}>
                     <View style={styles.calendarCard}>
                         <Text style={styles.calendarTitle}>
@@ -317,9 +310,19 @@ export default function CustomerSearchFilterModal({
                                 : t('citrine.msg000324')}
                         </Text>
                         <Calendar
-                            markingType="period"
-                            markedDates={markedDates}
-                            onDayPress={(day) => setCalendarTempISO(day.dateString)}
+                            markedDates={
+                                calendarTempISO
+                                    ? {
+                                          [calendarTempISO]: {
+                                              selected: true,
+                                              selectedColor: colors.primary,
+                                          },
+                                      }
+                                    : {}
+                            }
+                            onDayPress={day =>
+                                setCalendarTempISO(day.dateString)
+                            }
                             theme={{
                                 selectedDayBackgroundColor: colors.primary,
                                 todayTextColor: colors.primary,
@@ -328,7 +331,10 @@ export default function CustomerSearchFilterModal({
                         />
                         <View style={styles.calendarActions}>
                             <TouchableOpacity
-                                style={[styles.calendarBtn, styles.calendarBtnSecondary]}
+                                style={[
+                                    styles.calendarBtn,
+                                    styles.calendarBtnSecondary,
+                                ]}
                                 onPress={closeCalendar}
                                 activeOpacity={0.85}>
                                 <Text style={styles.calendarBtnSecondaryText}>
@@ -336,7 +342,10 @@ export default function CustomerSearchFilterModal({
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.calendarBtn, styles.calendarBtnPrimary]}
+                                style={[
+                                    styles.calendarBtn,
+                                    styles.calendarBtnPrimary,
+                                ]}
                                 onPress={confirmCalendar}
                                 activeOpacity={0.85}>
                                 <Text style={styles.calendarBtnPrimaryText}>
@@ -429,6 +438,7 @@ const styles = StyleSheet.create({
     counterRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         columnGap: moderateSize(14),
     },
     counterBtn: {
@@ -536,5 +546,3 @@ const styles = StyleSheet.create({
         color: colors.white,
     },
 });
-
-

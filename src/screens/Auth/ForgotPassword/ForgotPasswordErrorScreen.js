@@ -1,18 +1,23 @@
-import React, {useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {useTranslation} from 'react-i18next';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Header from '../../../components/Header';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
-import {commonStyles} from '../../../theme/commonStyles';
+import { commonStyles } from '../../../theme/commonStyles';
 import colors from '../../../constants/colors';
+import { getEmailError } from '../../../utils/validators';
 
 export default function ForgotPasswordErrorScreen() {
-    const {t} = useTranslation();
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
 
     const handleRequest = () => {
+        const newEmailError = getEmailError(email, t);
+        setEmailError(newEmailError);
+        if (newEmailError) return;
         void username;
         void email;
     };
@@ -27,15 +32,20 @@ export default function ForgotPasswordErrorScreen() {
 
                 <View style={styles.form}>
                     <Text style={styles.label}>{t('auth.username')}</Text>
-                    <Input
-                        value={username}
-                        onChangeText={setUsername}
-                    />
+                    <Input value={username} onChangeText={setUsername} />
                     <Text style={styles.label}>{t('setting.email')}</Text>
                     <Input
                         value={email}
-                        onChangeText={setEmail}
+                        onChangeText={text => {
+                            setEmail(text);
+                            setEmailError(getEmailError(text, t));
+                        }}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
                     />
+                    {emailError ? (
+                        <Text style={styles.errorText}>{emailError}</Text>
+                    ) : null}
 
                     <Button
                         title={t('forgotPassword.requestResetPassword')}
@@ -69,6 +79,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    errorText: {
+        color: colors.error,
+        fontSize: 12,
+        marginTop: 2,
+        marginBottom: 8,
+    },
     primaryButton: {
         alignSelf: 'flex-end',
         marginTop: 10,
@@ -79,4 +95,3 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
-

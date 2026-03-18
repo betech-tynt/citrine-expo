@@ -1,24 +1,40 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {
+    TouchableOpacity,
+    Text,
+    StyleSheet,
+    ActivityIndicator,
+} from 'react-native';
 import { ButtonPropTypes } from '../utils/propTypes';
 import colors from '../constants/colors';
 import { moderateSize } from '../styles/moderateSize';
 
 // Button component with customizable props
-const Button = ({ title, onPress, style, textStyle, disabled = false }) => {
+const Button = ({
+    title,
+    onPress,
+    style,
+    textStyle,
+    disabled = false,
+    loading = false,
+}) => {
     return (
         <TouchableOpacity
             style={[styles.button, disabled && styles.buttonDisabled, style]}
             onPress={disabled ? undefined : onPress}
-            disabled={disabled}>
-            <Text
-                style={[
-                    styles.buttonText,
-                    disabled && styles.buttonTextDisabled,
-                    textStyle,
-                ]}>
-                {title}
-            </Text>
+            disabled={disabled || loading}>
+            {loading ? (
+                <ActivityIndicator color={colors.white} size="small" />
+            ) : (
+                <Text
+                    style={[
+                        styles.buttonText,
+                        disabled && styles.buttonTextDisabled,
+                        textStyle,
+                    ]}>
+                    {title}
+                </Text>
+            )}
         </TouchableOpacity>
     );
 };

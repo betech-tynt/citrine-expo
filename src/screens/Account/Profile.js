@@ -5,6 +5,7 @@ import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
 import userImage from '../../assets/images/user-default.png';
 import { AccountProfilePropTypes } from '../../utils/propTypes';
+import { formatDate } from '../../utils/formatDate';
 
 const Profile = ({
     t,
@@ -62,7 +63,9 @@ const Profile = ({
 
                 <View style={styles.badgeActionRow}>
                     <View style={styles.roleBadge}>
-                        <Text style={styles.roleText}>{userData.role}</Text>
+                        <Text style={styles.roleText}>
+                            {userData.role?.name}
+                        </Text>
                     </View>
 
                     <TouchableOpacity
@@ -105,7 +108,9 @@ const Profile = ({
 
                 <View style={[styles.infoRow, styles.lastInfoRow]}>
                     <Text style={styles.infoLabel}>{t('profile.dob')}</Text>
-                    <Text style={styles.infoValue}>{userData.dob}</Text>
+                    <Text style={styles.infoValue}>
+                        {formatDate(userData.dob)}
+                    </Text>
                 </View>
             </View>
         </>
@@ -245,6 +250,7 @@ const styles = StyleSheet.create({
     },
     infoRow: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: moderateSize(15),
@@ -258,12 +264,15 @@ const styles = StyleSheet.create({
     infoLabel: {
         color: '#666',
         fontSize: moderateSize(14),
+        flexBasis: '35%',
     },
     infoValue: {
         color: '#333',
         fontWeight: '500',
         fontSize: moderateSize(14),
         textAlign: 'right',
+        flex: 1,
+        flexWrap: 'wrap',
     },
 });
 

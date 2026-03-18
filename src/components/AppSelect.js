@@ -276,17 +276,17 @@ AppSelect.propTypes = {
 const styles = StyleSheet.create({
     // --- Main Component Styles ---
     container: {
-        marginBottom: moderateSize(26),
+        marginBottom: moderateSize(12),
     },
     labelRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: moderateSize(8),
+        marginBottom: moderateSize(6),
     },
     label: {
-        fontSize: moderateSize(14),
+        fontSize: moderateSize(12),
         fontWeight: '600',
-        color: colors.textPrimary,
+        color: colors.textSecondary,
     },
     required: {
         marginLeft: moderateSize(4),

@@ -1,19 +1,32 @@
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    Platform,
+    StatusBar,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import CustomIcon from './CustomIcon';
+import { HeaderPropTypes } from '../utils/propTypes';
 import colors from '../constants/colors';
 import { moderateSize } from '../styles';
-import { HeaderPropTypes } from '../utils/propTypes';
-import CustomIcon from './CustomIcon';
 
 // Approximate header background height so it looks consistent across devices
 const STATUS_BAR_HEIGHT =
-    Platform.OS === 'android'
-        ? StatusBar.currentHeight || 55
-        : 55;
+    Platform.OS === 'android' ? StatusBar.currentHeight || 55 : 55;
 const HEADER_BACKGROUND_HEIGHT = (STATUS_BAR_HEIGHT || 0) + moderateSize(80);
+
+// Increase the touchable area for the back icon without affecting visual layout.
+const BACK_BUTTON_HIT_SLOP = {
+    top: moderateSize(15),
+    right: moderateSize(15),
+    bottom: moderateSize(15),
+    left: moderateSize(15),
+};
 
 // Header component with customizable props
 const Header = ({
@@ -55,8 +68,12 @@ const Header = ({
                 {showBackIcon && (
                     <TouchableOpacity
                         onPress={handleBackPress}
-                        style={styles.backButton}>
-                        <Icon name="angle-left" size={26} color="white" />
+                        style={styles.backButton}
+                        hitSlop={BACK_BUTTON_HIT_SLOP}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        accessibilityLabel="Go back">
+                        <Icon name="angle-left" size={30} color="white" />
                     </TouchableOpacity>
                 )}
 
@@ -116,7 +133,11 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
     },
     backButton: {
-        marginRight: moderateSize(16),
+        marginRight: moderateSize(10),
+        minWidth: moderateSize(25),
+        minHeight: moderateSize(25),
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     homeButton: {
         marginRight: moderateSize(10),
@@ -142,7 +163,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     rightIconButton: {
-        marginRight: moderateSize(16),
         padding: moderateSize(8),
     },
 });

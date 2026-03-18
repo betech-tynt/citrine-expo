@@ -1,10 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
-import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Text, View, StyleSheet } from 'react-native';
+import {
+    NavigationContainer,
+    useFocusEffect,
+    useNavigationContainerRef,
+} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import LoginScreen from '../screens/Auth/LoginScreen.js';
 import CustomerRegisterScreen from '../screens/Auth/CustomerRegisterScreen.js';
@@ -15,7 +20,6 @@ import HomeScreen from '../screens/Home/HomeScreen';
 import LanguageScreen from '../screens/Setting/Language/LanguageScreen.js';
 // import SearchScreen from '../screens/Search/SearchScreen.js';
 import MessageScreen from '../screens/Message/MessageScreen';
-import { useTranslation } from 'react-i18next';
 import SplashScreen from '../components/Splash';
 import { ENV, ensureEnvLoaded } from '../config/env';
 import ProfileScreen from '../screens/Setting/Profile/ProfileScreen.js';
@@ -27,7 +31,7 @@ import OtpVerifyScreen from '../screens/Auth/ForgotPassword/OtpVerifyScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPassword/ForgotPasswordScreen';
 import ForgotPasswordErrorScreen from '../screens/Auth/ForgotPassword/ForgotPasswordErrorScreen';
 import ChangeLogs from '../screens/ChangeLogs/ChangeLogs.js';
-import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/CustomerRoomInfoScreen';
+import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/index.js';
 import CustomerSearchRoomScreen from '../screens/CustomerSearch/CustomerSearchRoomScreen';
 import {
     ROLE_CUSTOMER,
@@ -36,31 +40,33 @@ import {
 } from '../constants/utils';
 import PromotionScreen from '../screens/Home/Promotion/PromotionScreen.js';
 import PaymentScreen from '../screens/Payment/PaymentScreen';
-import PaymentHistoryScreen from '../screens/Payment/PaymentHistoryScreen';
+import PaymentInfoScreen from '../screens/Payment/PaymentInfoScreen';
+import PaymentSettingScreen from '../screens/Payment/PaymentSettingScreen';
 import ActivityScreen from '../screens/Activity/ActivityScreen';
 import CleaningScreen from '../screens/Activity/CleaningScreen';
 import SearchRoomScreen from '../screens/Home/Booking/SearchRoom/SearchRoomScreen.js';
 // import SearchScreen from './../screens/Search/SearchScreen';
-import BookingCancelScreen from '../screens/Home/Booking/BookingCancel/BookingCancelScreen.js';
-import BookingConfirmScreen from '../screens/Home/Booking/BookingConfirm/BookingConfirmScreen.js';
+import BookingCancelScreen from '../screens/Home/Booking/BookingCancel/index.js';
+import BookingConfirmScreen from '../screens/Home/Booking/BookingConfirm/index.js';
 import BookingHistoryScreen from '../screens/Home/Booking/BookingHistory/BookingHistoryScreen.js';
-import BookingPaymentScreen from '../screens/Home/Booking/BookingPayment/BookingPaymentScreen.js';
+import BookingPaymentScreen from '../screens/Home/Booking/BookingPayment/index.js';
 import BookingInfoScreen from '../screens/Home/Booking/BookingInfo/BookingInfoScreen.js';
 import RoomInfoScreen from '../screens/Home/Booking/RoomInfo/RoomInfoScreen.js';
 import SignUpScreen from '../screens/Auth/SignUp/SignUpScreen.js';
-import AddProfileScreen from '../screens/Profile/AddProfileScreen';
-import CustomerBookingScreen from '../screens/Home/Booking/CustomerBooking/CustomerBookingScreen.js';
+import EditProfileScreen from '../screens/Profile/EditProfileScreen.js';
+import CustomerBookingScreen from '../screens/Home/Booking/CustomerBooking/index.js';
 import ConfirmProfileScreen from '../screens/Auth/SignUp/ConfirmProfile/ConfirmProfileScreen.js';
 import CustomerHome from '../screens/CustomerHome/CustomerHome.js';
 import Account from '../screens/Account/Account.js';
 import { fetchCustomerHomeData } from '../services/apiCustomerHome';
+import { setUnauthenticatedHandler } from '../services/api';
 import { moderateSize } from '../styles/moderateSize.js';
 
-// Create navigator
+// Create navigator instances for stack and bottom tabs.
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Navigator for tab screens
+// Normalize role codes from storage/API into a supported enum value.
 const normalizeRoleCode = roleCode => {
     const normalized = String(roleCode || '')
         .trim()
@@ -87,6 +93,7 @@ const TabNavigatorContent = () => {
     const insets = useSafeAreaInsets();
     const [userRole, setUserRole] = useState(ROLE_CUSTOMER);
 
+    // Resolve the current role from storage or a fallback API call.
     const loadRole = useCallback(async () => {
         try {
             const roleCode = await AsyncStorage.getItem('userRoleCode');
@@ -130,6 +137,7 @@ const TabNavigatorContent = () => {
         }, [loadRole]),
     );
 
+    // Map each tab route to its icon and label text.
     const getTabIcon = (routeName, focused) => {
         let iconName;
         let label;
@@ -142,10 +150,10 @@ const TabNavigatorContent = () => {
             label = t('navigation.search');
         } else if (routeName === 'Payment') {
             iconName = 'credit-card';
-            label = 'Payment';
+            label = t('navigation.payment');
         } else if (routeName === 'Activity') {
             iconName = 'list';
-            label = 'Activity';
+            label = t('navigation.activity');
         } else if (routeName === 'Cleaning') {
             iconName = 'trash';
             label = 'Cleaning';
@@ -160,14 +168,14 @@ const TabNavigatorContent = () => {
         return { iconName, label };
     };
 
-    // Calculate tab bar height with safe area insets
+    // Calculate tab bar height with safe area insets.
     const tabBarHeight = moderateSize(52);
     const tabBarPaddingTop = moderateSize(6);
     const tabBarPaddingBottom = moderateSize(6);
     const totalTabBarHeight = tabBarHeight + insets.bottom;
     const iconSize = moderateSize(18);
 
-    // List of all tabs
+    // List of all possible tabs; access is filtered by role.
     const ALL_TABS = [
         {
             key: 'home_customer',
@@ -187,6 +195,11 @@ const TabNavigatorContent = () => {
         {
             key: 'activity',
             name: 'Activity',
+            component: ActivityScreen,
+        },
+        {
+            key: 'bookingHistory',
+            name: 'Activity',
             component: BookingHistoryScreen,
         },
         {
@@ -201,12 +214,12 @@ const TabNavigatorContent = () => {
         },
     ];
 
-    // List of role → tab access
+    // Access matrix for which roles can see which tabs.
     const TAB_ACCESS_BY_ROLE = {
         [ROLE_CUSTOMER]: {
             home_customer: true,
             payment: true,
-            activity: true,
+            bookingHistory: true,
             account: true,
         },
         [ROLE_STAFF]: {
@@ -291,6 +304,9 @@ const TabNavigatorContent = () => {
 };
 
 const styles = StyleSheet.create({
+    appRoot: {
+        flex: 1,
+    },
     iconContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -327,12 +343,13 @@ const styles = StyleSheet.create({
 
 const TabNavigator = () => <TabNavigatorContent />;
 
-// Main Navigator to manage navigation
+// Main stack navigator that decides Login vs Main entry.
 const AppNavigatorContent = () => {
     const { t } = useTranslation();
     const [isLogin, setIsLogin] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // Initialize environment and determine the initial login state.
     useEffect(() => {
         const init = async () => {
             await ensureEnvLoaded();
@@ -355,7 +372,7 @@ const AppNavigatorContent = () => {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="SignUp" component={SignUpScreen} />
             <Stack.Screen name="Account" component={Account} />
-            <Stack.Screen name="AddProfile" component={AddProfileScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             <Stack.Screen
                 name="CustomerRegister"
                 component={CustomerRegisterScreen}
@@ -422,8 +439,12 @@ const AppNavigatorContent = () => {
             <Stack.Screen name="PromotionScreen" component={PromotionScreen} />
             <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
             <Stack.Screen
-                name="PaymentHistoryScreen"
-                component={PaymentHistoryScreen}
+                name="PaymentInfoScreen"
+                component={PaymentInfoScreen}
+            />
+            <Stack.Screen
+                name="PaymentSettingScreen"
+                component={PaymentSettingScreen}
             />
             <Stack.Screen name="ActivityScreen" component={ActivityScreen} />
             <Stack.Screen name="CleaningScreen" component={CleaningScreen} />
@@ -457,10 +478,64 @@ const AppNavigatorContent = () => {
     );
 };
 
-const AppNavigator = () => (
-    <NavigationContainer>
-        <AppNavigatorContent />
-    </NavigationContainer>
-);
+const AppNavigator = () => {
+    const navigationRef = useNavigationContainerRef();
+    const { t } = useTranslation();
+    const isHandlingUnauth = useRef(false);
+
+    // Register a global unauthenticated handler that shows an alert and
+    // navigates to Login only after the user confirms.
+    useEffect(() => {
+        setUnauthenticatedHandler(async () => {
+            if (isHandlingUnauth.current) {
+                return;
+            }
+
+            isHandlingUnauth.current = true;
+
+            Alert.alert(t('common.error'), t('auth.sessionExpired'), [
+                {
+                    text: t('common.ok'),
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.multiRemove([
+                                'token',
+                                'userInfo',
+                                'userRoleCode',
+                                'customerUser',
+                                'isLogin',
+                            ]);
+                        } catch (e) {
+                            console.error(
+                                '[AppNavigator] Failed to clear auth state:',
+                                e,
+                            );
+                        } finally {
+                            if (navigationRef?.isReady()) {
+                                navigationRef.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Login' }],
+                                });
+                            }
+                            isHandlingUnauth.current = false;
+                        }
+                    },
+                },
+            ]);
+        });
+
+        return () => {
+            setUnauthenticatedHandler(null);
+        };
+    }, [navigationRef, t]);
+
+    return (
+        <View style={styles.appRoot}>
+            <NavigationContainer ref={navigationRef}>
+                <AppNavigatorContent />
+            </NavigationContainer>
+        </View>
+    );
+};
 
 export default AppNavigator;

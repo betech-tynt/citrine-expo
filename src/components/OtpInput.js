@@ -6,7 +6,7 @@ import { moderateSize } from '../styles/moderateSize';
 
 const DEFAULT_LENGTH = 6;
 
-const sanitizeDigits = (value) => String(value || '').replace(/[^0-9]/g, '');
+const sanitizeDigits = value => String(value || '').replace(/[^0-9]/g, '');
 
 const OtpInput = ({
     value,
@@ -29,7 +29,7 @@ const OtpInput = ({
         refs.current = refs.current.slice(0, length);
     }, [length]);
 
-    const focusIndex = (index) => {
+    const focusIndex = index => {
         const ref = refs.current[index];
         if (ref && typeof ref.focus === 'function') {
             ref.focus();
@@ -48,6 +48,10 @@ const OtpInput = ({
         const cleaned = sanitizeDigits(text);
         if (!cleaned) {
             setAt(index, '');
+            // Fallback for Android Backspace on empty field
+            if (index > 0) {
+                focusIndex(index - 1);
+            }
             return;
         }
 
@@ -62,10 +66,22 @@ const OtpInput = ({
             nextArr[writeAt] = c;
             writeAt += 1;
         }
-        onChangeText?.(nextArr.join(''));
+        const nextValue = nextArr.join('');
+        onChangeText?.(nextValue);
 
-        const nextFocus = Math.min(writeAt, length - 1);
-        focusIndex(nextFocus);
+        // Derive updated digits after change
+        const updatedDigits = Array.from(
+            { length },
+            (_, i) => nextValue[i] || '',
+        );
+
+        // Fallback: if current field now empty after change, move to previous
+        if (!updatedDigits[index] && index > 0) {
+            focusIndex(index - 1);
+        } else {
+            const nextFocus = Math.min(writeAt, length - 1);
+            focusIndex(nextFocus);
+        }
     };
 
     const handleKeyPress = (index, e) => {
@@ -87,12 +103,12 @@ const OtpInput = ({
                 return (
                     <TextInput
                         key={idx}
-                        ref={(r) => {
+                        ref={r => {
                             refs.current[idx] = r;
                         }}
                         value={d}
-                        onChangeText={(t) => handleChange(idx, t)}
-                        onKeyPress={(e) => handleKeyPress(idx, e)}
+                        onChangeText={t => handleChange(idx, t)}
+                        onKeyPress={e => handleKeyPress(idx, e)}
                         keyboardType="number-pad"
                         textContentType="oneTimeCode"
                         maxLength={idx === 0 ? length : 1}
@@ -109,7 +125,7 @@ const OtpInput = ({
                             setFocusedIndex(idx);
                         }}
                         onBlur={() => {
-                            setFocusedIndex((v) => (v === idx ? -1 : v));
+                            setFocusedIndex(v => (v === idx ? -1 : v));
                         }}
                     />
                 );

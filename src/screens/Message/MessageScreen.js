@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
-import MainHeader from '../../components/MainHeader';
-import MessageItem from '../../components/MessageItem';
-import { SAMPLE_MESSAGE } from '../../constants/utils';
 import { commonStyles } from '../../theme/commonStyles';
+import MessageItem from '../../components/MessageItem';
+import { FlatList } from 'react-native-gesture-handler';
+import { SAMPLE_MESSAGE } from '../../constants/utils';
+import MainHeader from '../../components/MainHeader';
 
 const MessageScreen = () => {
     return (
@@ -23,7 +23,7 @@ const MessageScreen = () => {
                             date={item.date}
                         />
                     )}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item?.id?.toString() || ''}
                 />
             </View>
         </View>

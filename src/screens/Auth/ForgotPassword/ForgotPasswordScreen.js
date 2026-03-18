@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    TouchableOpacity,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../../../components/Header';
@@ -7,61 +16,50 @@ import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import { commonStyles } from '../../../theme/commonStyles';
 import colors from '../../../constants/colors';
-import { forgotPassword } from '../../../services/auth';
+import { sendOtp, TYPE_FORGOT_PASSWORD } from '../../../services/auth';
+import { getEmailError } from '../../../utils/validators';
+import { moderateSize } from '../../../styles';
+import ForgotPasswordImage from '../../../assets/images/backgrounds/forgot-password.jpg';
 
 export default function ForgotPasswordScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
-    const usernameLabel = t('auth.username');
     const emailLabel = t('setting.email');
 
-    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [submitError, setSubmitError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [errors, setErrors] = useState({
-        username: '',
         email: '',
     });
+    const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const handleRequest = async () => {
         let newErrors = {
-            username: '',
             email: '',
         };
 
-        if (!username.trim()) {
-            newErrors.username = t('validate.required', {
-                field: usernameLabel,
-                defaultValue: `${usernameLabel} is required`,
-            });
-        }
-
-        if (!email.trim()) {
-            newErrors.email = t('validate.required', {
-                field: emailLabel,
-                defaultValue: `${emailLabel} is required`,
-            });
-        }
+        setHasSubmitted(true);
+        newErrors.email = getEmailError(email, t);
 
         setErrors(newErrors);
         setSubmitError('');
 
-        if (newErrors.username || newErrors.email) {
+        if (newErrors.email) {
             return;
         }
 
         try {
             setIsSubmitting(true);
-            const { status, message } = await forgotPassword(
-                username.trim(),
-                email.trim(),
-            );
+            const result = await sendOtp(email.trim(), TYPE_FORGOT_PASSWORD);
+            const { status, message, expires_in_minutes } = result || {};
 
             if (status === 1) {
                 navigation.navigate('CheckOTPScreen', {
-                    username: username.trim(),
+                    email: email.trim(),
+                    expiresInMinutes: expires_in_minutes,
+                    showOtpMessage: true,
                 });
                 return;
             }
@@ -87,55 +85,93 @@ export default function ForgotPasswordScreen() {
 
     return (
         <View style={styles.container}>
-            <Header 
-                title={t('otp.title')} 
+            <Header
+                title={t('otp.title')}
                 showCrudText={false}
                 onBackPress={handleBackPress}
             />
 
-            <View style={commonStyles.main}>
-                {submitError ? (
-                    <Text style={styles.errorTitle}>{submitError}</Text>
-                ) : null}
-
-                <View style={styles.form}>
-                    <Text style={styles.label}>{usernameLabel}</Text>
-                    <Input
-                        value={username}
-                        style={styles.inputCompact}
-                        onChangeText={text => {
-                            setUsername(text);
-                            setErrors(prev => ({ ...prev, username: '' }));
-                            setSubmitError('');
-                        }}
-                    />
-                    {errors.username ? (
-                        <Text style={styles.errorText}>{errors.username}</Text>
+            <KeyboardAvoidingView
+                style={[commonStyles.main]}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                    {submitError ? (
+                        <Text style={styles.errorTitle}>{submitError}</Text>
                     ) : null}
 
-                    <Text style={styles.label}>{emailLabel}</Text>
-                    <Input
-                        value={email}
-                        style={styles.inputCompact}
-                        onChangeText={text => {
-                            setEmail(text);
-                            setErrors(prev => ({ ...prev, email: '' }));
-                            setSubmitError('');
-                        }}
-                    />
-                    {errors.email ? (
-                        <Text style={styles.errorText}>{errors.email}</Text>
-                    ) : null}
+                    <View style={styles.form}>
+                        <Text style={styles.title}>
+                            {t('citrine.msg000334', {
+                                defaultValue: t('forgotPassword.title'),
+                            })}
+                        </Text>
+                        <Text style={styles.subtitle}>
+                            {t('citrine.msg000335', {
+                                defaultValue: t('forgotPassword.subtitle'),
+                            })}
+                        </Text>
 
-                    <Button
-                        title={t('forgotPassword.requestResetPassword')}
-                        onPress={handleRequest}
-                        disabled={isSubmitting}
-                        style={styles.primaryButton}
-                        textStyle={styles.primaryButtonText}
-                    />
-                </View>
-            </View>
+                        <Image
+                            source={ForgotPasswordImage}
+                            style={styles.illustration}
+                            resizeMode="contain"
+                        />
+
+                        <Text style={styles.label}>{emailLabel}</Text>
+                        <Input
+                            value={email}
+                            style={styles.inputCompact}
+                            onChangeText={text => {
+                                setEmail(text);
+
+                                if (errors.email) {
+                                    setErrors(prev => ({
+                                        ...prev,
+                                        email: '',
+                                    }));
+                                }
+
+                                setSubmitError('');
+                            }}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {hasSubmitted && errors.email ? (
+                            <Text style={styles.errorText}>{errors.email}</Text>
+                        ) : null}
+
+                        <Text style={styles.hintText}>
+                            {t('citrine.msg000336', {
+                                defaultValue: t('forgotPassword.hint'),
+                            })}
+                        </Text>
+
+                        <Button
+                            title={t('citrine.msg000337', {
+                                defaultValue: t('forgotPassword.send'),
+                            })}
+                            onPress={handleRequest}
+                            disabled={isSubmitting}
+                            style={styles.primaryButton}
+                            textStyle={styles.primaryButtonText}
+                        />
+                    </View>
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>
+                            {t('citrine.msg000338', {
+                                defaultValue: t('forgotPassword.haveAccount'),
+                            })}{' '}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Login')}>
+                            <Text style={styles.footerLink}>
+                                {t('auth.signIn')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 }
@@ -149,33 +185,74 @@ const styles = StyleSheet.create({
         marginBottom: 14,
         textAlign: 'center',
         color: colors.error,
-        fontSize: 12,
+        fontSize: moderateSize(12),
         fontWeight: '700',
     },
     form: {
-        marginTop: 6,
+        marginTop: moderateSize(6),
+    },
+    title: {
+        fontSize: moderateSize(24),
+        fontWeight: '800',
+        color: colors.primary,
+        marginBottom: moderateSize(6),
+    },
+    subtitle: {
+        fontSize: moderateSize(14),
+        fontWeight: '400',
+        color: colors.textPrimary,
+        marginBottom: moderateSize(20),
+    },
+    illustration: {
+        width: '100%',
+        height: moderateSize(200),
+        marginBottom: moderateSize(20),
+        alignSelf: 'center',
     },
     label: {
-        marginBottom: 8,
-        fontSize: 14,
+        marginBottom: moderateSize(8),
+        fontSize: moderateSize(14),
         fontWeight: '600',
+        color: colors.textPrimary,
     },
     errorText: {
         color: colors.error,
-        fontSize: 12,
-        marginTop: 2,
-        marginBottom: 8,
+        fontSize: moderateSize(12),
+        marginTop: moderateSize(2),
+        marginBottom: moderateSize(8),
     },
     inputCompact: {
-        marginBottom: 13,
+        marginBottom: moderateSize(13),
+    },
+    hintText: {
+        fontSize: moderateSize(12),
+        color: colors.textSecondary,
+        marginTop: moderateSize(8),
+        marginBottom: moderateSize(16),
     },
     primaryButton: {
-        alignSelf: 'flex-end',
-        marginTop: 0,
-        borderRadius: 8,
+        width: '100%',
+        marginTop: moderateSize(0),
+        borderRadius: moderateSize(15),
+        paddingVertical: moderateSize(14),
     },
     primaryButtonText: {
-        fontSize: 12,
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: moderateSize(24),
+    },
+    footerText: {
+        fontSize: moderateSize(12),
+        color: colors.textSecondary,
+    },
+    footerLink: {
+        fontSize: moderateSize(12),
         fontWeight: '700',
+        color: colors.primary,
     },
 });

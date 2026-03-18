@@ -26,24 +26,24 @@ export const formatDate = (date, language = null) => {
     const year = parsedDate.getFullYear();
 
     switch (currentLanguage) {
-        case 'vi': {
-            // Vietnamese format: dd/MM/yyyy
+        case 'vi':
+        case 'en': {
+            // Vietnamese and English format: dd/MM/yyyy
             const dd = `${day}`.padStart(2, '0');
             const mm = `${month}`.padStart(2, '0');
             return `${dd}/${mm}/${year}`;
         }
         case 'jp': {
-            // Japanese format: yyyy年M月d日 (no leading zeros)
-            return `${year}年${month}月${day}日`;
-        }
-        case 'en':
-        default: {
-            // English (US) format: MM/DD/YYYY
+            // Japanese format: yyyy/MM/dd
             const mm = `${month}`.padStart(2, '0');
             const dd = `${day}`.padStart(2, '0');
-            return `${mm}/${dd}/${year}`;
+            return `${year}/${mm}/${dd}`;
+        }
+        default: {
+            // Default to dd/MM/yyyy
+            const dd = `${day}`.padStart(2, '0');
+            const mm = `${month}`.padStart(2, '0');
+            return `${dd}/${mm}/${year}`;
         }
     }
 };
-
-

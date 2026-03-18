@@ -1,38 +1,44 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
-    ActivityIndicator,
     FlatList,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
+    TouchableOpacity,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { isAuthError, handleAuthError } from '../../../../utils/authErrorHandler';
 import Header from '../../../../components/Header';
+import { commonStyles } from '../../../../theme/commonStyles';
 import colors from '../../../../constants/colors';
+import { moderateSize } from '../../../../styles';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 import {
     BOOKING_STATUS,
-    BOOKING_STATUS_COLORS,
     BOOKING_STATUS_I18N_KEY,
-    getBookingStatusStyle,
+    BOOKING_STATUS_COLORS,
     normalizeBookingStatus,
+    getBookingStatusStyle,
 } from '../../../../constants/utils';
-import { fetchCustomerBookingHistory } from '../../../../services/apiBookingHistory';
-import { moderateSize } from '../../../../styles';
-import { commonStyles } from '../../../../theme/commonStyles';
-import { formatCurrency } from '../../../../utils/formatCurrency';
-import { formatDate } from '../../../../utils/formatDate';
 import { BookingHistoryCardPropTypes } from '../../../../utils/propTypes';
+import { fetchCustomerBookingHistory } from '../../../../services/apiBookingHistory';
+import { formatDate } from '../../../../utils/formatDate';
 
 // Use shared utility function for status styles
 const getStatusStyle = status => getBookingStatusStyle(status, styles);
 
 // Booking card component for displaying booking information
 const BookingCard = ({ booking, t }) => {
+    // Defensive check for null/undefined booking
+    if (!booking) {
+        return null;
+    }
+
     const navigation = useNavigation();
-    const normalizedStatus = normalizeBookingStatus(booking.status);
+    const normalizedStatus = normalizeBookingStatus(booking?.status);
     const statusStyle = getStatusStyle(normalizedStatus);
     const statusKey =
         BOOKING_STATUS_I18N_KEY[normalizedStatus] ||
@@ -54,14 +60,14 @@ const BookingCard = ({ booking, t }) => {
     };
 
     const guestCount = useMemo(() => {
-        const adults = booking.guest_count?.adults || 0;
-        const children = booking.guest_count?.children || 0;
+        const adults = booking?.guest_count?.adults || 0;
+        const children = booking?.guest_count?.children || 0;
         return adults + children;
-    }, [booking.guest_count]);
+    }, [booking?.guest_count]);
 
     const guestDetails = useMemo(() => {
-        const adults = booking.guest_count?.adults || 0;
-        const children = booking.guest_count?.children || 0;
+        const adults = booking?.guest_count?.adults || 0;
+        const children = booking?.guest_count?.children || 0;
 
         const parts = [];
         if (adults > 0) {
@@ -77,16 +83,29 @@ const BookingCard = ({ booking, t }) => {
         }
 
         return parts.join(', ');
-    }, [booking.guest_count, guestCount, t]);
+    }, [booking?.guest_count, guestCount, t]);
 
     const formattedRoomDetails = useMemo(() => {
-        if (!booking.room_details) return '';
+        if (!booking?.room_details) return '';
         // Add spacing between rooms if multiple rooms exist
         return booking.room_details
             .split(',')
             .map(room => room.trim())
             .join(', ');
-    }, [booking.room_details]);
+    }, [booking?.room_details]);
+
+    // Safe values for display
+    const displaySectionName = booking?.section_name || '-';
+    const displayCheckIn = booking?.check_in_at
+        ? formatDate(booking.check_in_at)
+        : '-';
+    const displayCheckOut = booking?.check_out_at
+        ? formatDate(booking.check_out_at)
+        : '-';
+    const displayTotalPrice =
+        booking?.total_price != null
+            ? formatCurrency(booking.total_price)
+            : '-';
 
     return (
         <TouchableOpacity
@@ -94,13 +113,13 @@ const BookingCard = ({ booking, t }) => {
             onPress={handleCardPress}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={`Booking at ${booking.section_name}, status ${statusLabel}`}>
+            accessibilityLabel={`Booking at ${displaySectionName}, status ${statusLabel}`}>
             <View style={styles.bookingHeader}>
                 <Text
                     style={styles.bookingHotel}
                     accessibilityRole="text"
-                    accessibilityLabel={`Hotel: ${booking.section_name}`}>
-                    {booking.section_name}
+                    accessibilityLabel={`Hotel: ${displaySectionName}`}>
+                    {displaySectionName}
                 </Text>
                 <View
                     style={[styles.bookingStatus, statusStyle.container]}
@@ -114,19 +133,15 @@ const BookingCard = ({ booking, t }) => {
                 <Text
                     style={styles.dateText}
                     accessibilityRole="text"
-                    accessibilityLabel={`Check-in: ${formatDate(
-                        booking.check_in_at,
-                    )}`}>
-                    {formatDate(booking.check_in_at)}
+                    accessibilityLabel={`Check-in: ${displayCheckIn}`}>
+                    {displayCheckIn}
                 </Text>
                 <Text style={styles.dateSeparator}>→</Text>
                 <Text
                     style={styles.dateText}
                     accessibilityRole="text"
-                    accessibilityLabel={`Check-out: ${formatDate(
-                        booking.check_out_at,
-                    )}`}>
-                    {formatDate(booking.check_out_at)}
+                    accessibilityLabel={`Check-out: ${displayCheckOut}`}>
+                    {displayCheckOut}
                 </Text>
             </View>
 
@@ -154,9 +169,7 @@ const BookingCard = ({ booking, t }) => {
                 <Text style={styles.infoLabel}>
                     {t('bookingHistory.totalAmount')}
                 </Text>
-                <Text style={styles.totalPrice}>
-                    {formatCurrency(booking.total_price)}
-                </Text>
+                <Text style={styles.totalPrice}>{displayTotalPrice}</Text>
             </View>
 
             {canCancel && (
@@ -179,6 +192,7 @@ BookingCard.propTypes = BookingHistoryCardPropTypes;
 
 const BookingHistoryScreen = () => {
     const { t } = useTranslation();
+    const navigation = useNavigation();
     const [bookings, setBookings] = useState([]);
     const [paginatorInfo, setPaginatorInfo] = useState(null);
     const [page, setPage] = useState(1);
@@ -203,6 +217,11 @@ const BookingHistoryScreen = () => {
             }
             setPaginatorInfo(pInfo);
         } catch (e) {
+            const errorMessage = e.message || '';
+            if (isAuthError(errorMessage)) {
+                handleAuthError(navigation);
+                return;
+            }
             setError(e.message);
         } finally {
             setLoading(false);
@@ -268,8 +287,10 @@ const BookingHistoryScreen = () => {
                 <Header
                     title={t('bookingHistory.title')}
                     showCrudText={false}
+                    showHomeIcon={false}
+                    showBackIcon={false}
                 />
-                <View style={commonStyles.bookingMain}>
+                <View style={commonStyles.main}>
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator
                             size="large"
@@ -289,6 +310,8 @@ const BookingHistoryScreen = () => {
                 <Header
                     title={t('bookingHistory.title')}
                     showCrudText={false}
+                    showHomeIcon={false}
+                    showBackIcon={false}
                 />
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
@@ -298,11 +321,14 @@ const BookingHistoryScreen = () => {
     }
 
     return (
-        <SafeAreaView
-            edges={['left', 'right', 'bottom']}
-            style={styles.container}>
-            <Header title={t('bookingHistory.title')} showCrudText={false} />
-            <View style={commonStyles.bookingMain}>
+        <SafeAreaView edges={['left', 'right']} style={styles.container}>
+            <Header
+                title={t('bookingHistory.title')}
+                showCrudText={false}
+                showHomeIcon={false}
+                showBackIcon={false}
+            />
+            <View style={[commonStyles.main, styles.bookingMain]}>
                 <FlatList
                     data={bookings}
                     renderItem={renderBookingCard}

@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo } from './deviceInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -81,6 +81,13 @@ export async function fetchCustomerRoomInfo(sectionId) {
     `;
 
     const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+        const message = 'Unauthenticated: missing token';
+        notifyUnauthenticated(message);
+        throw new Error(message);
+    }
+
     const variables = {
         section_id: parseInt(sectionId, 10),
         version,

@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, {
+    useState,
+    useMemo,
+    useCallback,
+    useEffect,
+    useRef,
+} from 'react';
 import {
     StyleSheet,
     View,
@@ -19,6 +25,7 @@ import { commonStyles } from '../../theme/commonStyles';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerSectionSearch } from '../../services/apiCustomerSectionSearch';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 export default function CustomerSearchRoomScreen() {
     const navigation = useNavigation();
@@ -28,7 +35,9 @@ export default function CustomerSearchRoomScreen() {
 
     // Get initial search query from route params
     const initialSearchQuery = route.params?.searchQuery || '';
+    const shouldOpenFilterModal = route.params?.openFilterModal || false;
     const hasTriggeredInitialSearch = useRef(false);
+    const searchInputRef = useRef(null);
 
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
@@ -36,11 +45,24 @@ export default function CustomerSearchRoomScreen() {
     const [error, setError] = useState(null);
     const [sections, setSections] = useState([]);
     const [paginatorInfo, setPaginatorInfo] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const DEFAULT_FILTER = useMemo(() => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const toISO = d => {
+            const yyyy = `${d.getFullYear()}`;
+            const mm = `${d.getMonth() + 1}`.padStart(2, '0');
+            const dd = `${d.getDate()}`.padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
         return {
-            checkInISO: '',
-            checkOutISO: '',
+            checkInISO: toISO(today),
+            checkOutISO: toISO(tomorrow),
             adults: 2,
             children: 0,
         };
@@ -50,8 +72,27 @@ export default function CustomerSearchRoomScreen() {
     const [appliedFilter, setAppliedFilter] = useState(DEFAULT_FILTER);
     const [draftFilter, setDraftFilter] = useState(DEFAULT_FILTER);
 
+    // Auto-focus search input when screen mounts (only if not opening filter modal)
+    useEffect(() => {
+        if (!shouldOpenFilterModal) {
+            const timer = setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus();
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [shouldOpenFilterModal]);
+
+    // Open filter modal if requested from navigation params
+    useEffect(() => {
+        if (shouldOpenFilterModal) {
+            setFilterVisible(true);
+        }
+    }, [shouldOpenFilterModal]);
+
     // Map category filter to type_id: 1=Hotel, 2=Apartment, 3=Resort, 'all'=null (get all)
-    const getTypeIdFromFilter = useCallback((filter) => {
+    const getTypeIdFromFilter = useCallback(filter => {
         const typeIdMap = {
             all: null,
             hotel: 1,
@@ -69,83 +110,173 @@ export default function CustomerSearchRoomScreen() {
         }
     };
 
-    const performSearch = useCallback(async (query, typeId = null) => {
-        if (!query || !query.trim()) {
-            setSections([]);
-            setPaginatorInfo(null);
-            setError(null);
+    const performSearch = useCallback(
+        async (
+            query,
+            typeId = null,
+            pageNum = 1,
+            isLoadMore = false,
+            filter = null,
+        ) => {
+            try {
+                if (!isLoadMore) {
+                    setLoading(true);
+                } else {
+                    setIsLoadingMore(true);
+                }
+                setError(null);
+                const address = query?.trim() ?? '';
+                const result = await fetchCustomerSectionSearch({
+                    address,
+                    type_id: typeId,
+                    checkin_date: filter?.checkInISO ?? null,
+                    checkout_date: filter?.checkOutISO ?? null,
+                    adults: filter?.adults ?? null,
+                    children: filter?.children ?? null,
+                    page: pageNum,
+                    limit: 10,
+                    sort_by: 'rating_value',
+                    order: 'desc',
+                });
+
+                if (isLoadMore) {
+                    // Append new sections to existing
+                    setSections(prevSections => [
+                        ...prevSections,
+                        ...(result.sections || []),
+                    ]);
+                } else {
+                    // Reset sections
+                    setSections(result.sections || []);
+                }
+                setPaginatorInfo(result.paginatorInfo);
+                setCurrentPage(pageNum);
+            } catch (err) {
+                console.error('Error searching sections:', err);
+                const errorMessage = err.message || 'Failed to search';
+
+                // Check if error is "No sections found" - treat as empty result, not error
+                if (
+                    errorMessage.toLowerCase().includes('no sections found') ||
+                    errorMessage.toLowerCase().includes('no results found')
+                ) {
+                    if (!isLoadMore) {
+                        setSections([]);
+                        setPaginatorInfo({
+                            total: 0,
+                            currentPage: 1,
+                            lastPage: 1,
+                            perPage: 10,
+                        });
+                    }
+                    setError(null);
+                } else {
+                    setError(errorMessage);
+                    if (!isLoadMore) {
+                        setSections([]);
+                        setPaginatorInfo(null);
+                    }
+                }
+            } finally {
+                if (!isLoadMore) {
+                    setLoading(false);
+                } else {
+                    setIsLoadingMore(false);
+                }
+            }
+        },
+        [],
+    );
+
+    const loadMore = useCallback(() => {
+        if (
+            isLoadingMore ||
+            !paginatorInfo ||
+            paginatorInfo.currentPage >= paginatorInfo.lastPage ||
+            sections.length === 0
+        ) {
             return;
         }
 
-        try {
-            setLoading(true);
-            setError(null);
-            const result = await fetchCustomerSectionSearch({
-                address: query.trim(),
-                type_id: typeId,
-                page: 1,
-                limit: 10,
-                sort_by: 'rating_value',
-                order: 'desc',
-            });
-            setSections(result.sections || []);
-            setPaginatorInfo(result.paginatorInfo);
-            // Clear error if search was successful
-            setError(null);
-        } catch (err) {
-            console.error('Error searching sections:', err);
-            const errorMessage = err.message || 'Failed to search';
+        const typeId = getTypeIdFromFilter(selectedFilter);
+        const nextPage = currentPage + 1;
+        performSearch(searchQuery, typeId, nextPage, true, appliedFilter);
+    }, [
+        isLoadingMore,
+        paginatorInfo,
+        sections.length,
+        currentPage,
+        selectedFilter,
+        searchQuery,
+        appliedFilter,
+        getTypeIdFromFilter,
+        performSearch,
+    ]);
 
-            // Check if error is "No sections found" - treat as empty result, not error
-            if (
-                errorMessage.toLowerCase().includes('no sections found') ||
-                errorMessage.toLowerCase().includes('no results found')
-            ) {
-                setSections([]);
-                setPaginatorInfo({
-                    total: 0,
-                    currentPage: 1,
-                    lastPage: 1,
-                    perPage: 10,
-                });
-                setError(null); // Don't show error for empty results
-            } else {
-                // Real error occurred
-                setError(errorMessage);
-                setSections([]);
-                setPaginatorInfo(null);
-            }
-        } finally {
-            setLoading(false);
-        }
+    const resetPagination = useCallback(() => {
+        setSections([]);
+        setCurrentPage(1);
+        setIsLoadingMore(false);
+        setPaginatorInfo(null);
     }, []);
 
     const handleSearch = useCallback(() => {
+        resetPagination();
         const typeId = getTypeIdFromFilter(selectedFilter);
-        performSearch(searchQuery, typeId);
-    }, [searchQuery, selectedFilter, performSearch, getTypeIdFromFilter]);
+        performSearch(searchQuery, typeId, 1, false, appliedFilter);
+    }, [
+        resetPagination,
+        getTypeIdFromFilter,
+        performSearch,
+        selectedFilter,
+        searchQuery,
+        appliedFilter,
+    ]);
 
     // Auto-trigger search if initial query is provided from route params (only once on mount)
     useEffect(() => {
         if (initialSearchQuery.trim() && !hasTriggeredInitialSearch.current) {
             hasTriggeredInitialSearch.current = true;
-            // Trigger search directly with the initial query
-            // Use setTimeout to ensure state is properly initialized
             const timer = setTimeout(() => {
+                resetPagination();
                 const typeId = getTypeIdFromFilter(selectedFilter);
-                performSearch(initialSearchQuery, typeId);
+                performSearch(
+                    initialSearchQuery,
+                    typeId,
+                    1,
+                    false,
+                    appliedFilter,
+                );
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [initialSearchQuery, selectedFilter, getTypeIdFromFilter, performSearch]);
+    }, [
+        initialSearchQuery,
+        selectedFilter,
+        appliedFilter,
+        getTypeIdFromFilter,
+        performSearch,
+        resetPagination,
+    ]);
 
-    // Re-search when filter changes (if there's already a search query)
+    // Re-search when selectedFilter (category tab) changes
+    // NOTE: appliedFilter is NOT in dependency array to avoid race condition with applyFilter()
+    const appliedFilterRef = useRef(appliedFilter);
     useEffect(() => {
-        if (searchQuery.trim() && hasTriggeredInitialSearch.current) {
-            const typeId = getTypeIdFromFilter(selectedFilter);
-            performSearch(searchQuery, typeId);
-        }
-    }, [selectedFilter, searchQuery, getTypeIdFromFilter, performSearch]);
+        appliedFilterRef.current = appliedFilter;
+    }, [appliedFilter]);
+
+    useEffect(() => {
+        resetPagination();
+        const typeId = getTypeIdFromFilter(selectedFilter);
+        performSearch(
+            searchQuery || '',
+            typeId,
+            1,
+            false,
+            appliedFilterRef.current,
+        );
+    }, [selectedFilter, getTypeIdFromFilter, performSearch, resetPagination]); // appliedFilter intentionally excluded - handled by applyFilter()
 
     const handleRetry = () => {
         handleSearch();
@@ -163,8 +294,18 @@ export default function CustomerSearchRoomScreen() {
     const applyFilter = useCallback(() => {
         setAppliedFilter(draftFilter);
         setFilterVisible(false);
-        // UI-only per requirement: currently does not change API request
-    }, [draftFilter]);
+        // Trigger re-search with new filter values
+        resetPagination();
+        const typeId = getTypeIdFromFilter(selectedFilter);
+        performSearch(searchQuery, typeId, 1, false, draftFilter);
+    }, [
+        draftFilter,
+        resetPagination,
+        getTypeIdFromFilter,
+        selectedFilter,
+        searchQuery,
+        performSearch,
+    ]);
 
     // No need for client-side filtering anymore since API handles it via type_id
     const filteredRooms = useMemo(() => {
@@ -212,9 +353,7 @@ export default function CustomerSearchRoomScreen() {
     const renderRoomItem = useCallback(
         ({ item }) => {
             const hasPrice = !!item.min_price;
-            const priceText = hasPrice
-                ? `${item.min_price.toLocaleString()}đ`
-                : 'N/A';
+            const priceText = hasPrice ? formatCurrency(item.min_price) : 'N/A';
 
             const firstImageUrl =
                 Array.isArray(item.images) && item.images.length > 0
@@ -238,18 +377,25 @@ export default function CustomerSearchRoomScreen() {
             return (
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => navigation.navigate('CustomerRoomInfo', { room })}>
+                    onPress={() =>
+                        navigation.navigate('CustomerRoomInfo', {
+                            room,
+                            searchFilter: appliedFilter,
+                        })
+                    }>
                     <RoomItem room={room} language={currentLanguage} />
                 </TouchableOpacity>
             );
         },
-        [currentLanguage, navigation],
+        [appliedFilter, currentLanguage, navigation],
     );
 
     // Error state - show full screen error only if there's an error and no sections
     if (error && sections.length === 0 && !loading) {
         return (
-            <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+            <SafeAreaView
+                edges={['left', 'right', 'bottom']}
+                style={styles.container}>
                 <Header
                     title={t('customerSearch.title')}
                     showCrudText={false}
@@ -263,9 +409,7 @@ export default function CustomerSearchRoomScreen() {
                         size={60}
                         color={colors.error || '#FF6B6B'}
                     />
-                    <Text style={styles.errorText}>
-                        {t('common.error')}
-                    </Text>
+                    <Text style={styles.errorText}>{t('common.error')}</Text>
                     <Text style={styles.errorMessage}>{error}</Text>
                     <TouchableOpacity
                         style={styles.retryButton}
@@ -306,6 +450,7 @@ export default function CustomerSearchRoomScreen() {
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearch}
+                        inputRef={searchInputRef}
                     />
                 </View>
 
@@ -344,6 +489,18 @@ export default function CustomerSearchRoomScreen() {
                         ]}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={false}
+                        onEndReached={loadMore}
+                        onEndReachedThreshold={0.3}
+                        ListFooterComponent={() =>
+                            isLoadingMore ? (
+                                <View style={styles.footerLoader}>
+                                    <ActivityIndicator
+                                        size="small"
+                                        color={colors.primary}
+                                    />
+                                </View>
+                            ) : null
+                        }
                         ListEmptyComponent={
                             searchQuery.trim() ? (
                                 <View style={styles.emptyContainer}>
@@ -355,7 +512,7 @@ export default function CustomerSearchRoomScreen() {
                                     />
                                     <Text style={styles.emptyText}>
                                         {t('customerSearch.noResults', {
-                                            defaultValue: 'No rooms found',
+                                            defaultValue: `No rooms found for "${searchQuery}"`,
                                         })}
                                     </Text>
                                 </View>
@@ -368,9 +525,9 @@ export default function CustomerSearchRoomScreen() {
                                         color={colors.textSecondary}
                                     />
                                     <Text style={styles.emptyText}>
-                                        {t('customerSearch.inputAddress', {
+                                        {t('customerSearch.noPopularRooms', {
                                             defaultValue:
-                                                'Enter an address to search',
+                                                'No popular rooms available',
                                         })}
                                     </Text>
                                 </View>
@@ -500,5 +657,9 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(16),
         fontWeight: '600',
         color: colors.white,
+    },
+    footerLoader: {
+        paddingVertical: moderateSize(20),
+        alignItems: 'center',
     },
 });

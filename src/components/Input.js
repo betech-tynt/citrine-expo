@@ -21,8 +21,10 @@ const InputComponent = ({
     onEndIconPress,
     iconSize = 20, // default size
     iconColor = '#000', // default color
+    textColor,
     value,
     onChangeText,
+    editable = true,
     ...textInputProps
 }) => {
     return (
@@ -36,11 +38,15 @@ const InputComponent = ({
             )}
             <TextInput
                 placeholder={placeholder}
+                placeholderTextColor={colors.textSecondary}
                 secureTextEntry={secureTextEntry}
+                editable={editable}
                 style={[
                     styles.input,
                     startIcon && styles.inputWithStartIcon,
                     endIcon && styles.inputWithEndIcon,
+                    textColor && { color: textColor },
+                    !editable && { opacity: 1 }, // Override default reduced opacity for disabled inputs
                 ]}
                 value={value}
                 onChangeText={onChangeText}

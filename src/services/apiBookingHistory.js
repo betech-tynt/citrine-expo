@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo } from './deviceInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -67,6 +67,12 @@ export async function fetchCustomerBookingHistory(filters = {}) {
     const { version, platform } = await getDeviceInfo();
     const token = await AsyncStorage.getItem('token');
 
+    if (!token) {
+        const message = 'Unauthenticated: missing token';
+        notifyUnauthenticated(message);
+        throw new Error(message);
+    }
+
     const variables = {
         page: filters.page || 1,
         limit: filters.limit || 10,
@@ -103,13 +109,12 @@ export async function fetchCustomerBookingHistory(filters = {}) {
             if (!data || (Array.isArray(data) && data.length === 0)) {
                 return {
                     bookings: [],
-                    paginatorInfo:
-                        paginatorInfo || {
-                            total: 0,
-                            currentPage: filters.page || 1,
-                            lastPage: filters.page || 1,
-                            perPage: filters.limit || 10,
-                        },
+                    paginatorInfo: paginatorInfo || {
+                        total: 0,
+                        currentPage: filters.page || 1,
+                        lastPage: filters.page || 1,
+                        perPage: filters.limit || 10,
+                    },
                 };
             }
 
@@ -119,16 +124,18 @@ export async function fetchCustomerBookingHistory(filters = {}) {
 
         return {
             bookings: data || [],
-            paginatorInfo:
-                paginatorInfo || {
-                    total: Array.isArray(data) ? data.length : 0,
-                    currentPage: filters.page || 1,
-                    lastPage: filters.page || 1,
-                    perPage: filters.limit || 10,
-                },
+            paginatorInfo: paginatorInfo || {
+                total: Array.isArray(data) ? data.length : 0,
+                currentPage: filters.page || 1,
+                lastPage: filters.page || 1,
+                perPage: filters.limit || 10,
+            },
         };
     } catch (error) {
-        console.error('Error fetching customer booking history:', error.message);
+        console.error(
+            'Error fetching customer booking history:',
+            error.message,
+        );
         throw new Error(
             'Failed to fetch customer booking history: ' + error.message,
         );

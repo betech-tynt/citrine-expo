@@ -7,7 +7,7 @@ const { EnvConfig } = NativeModules;
 const fallbackConfig = {
     API_URL,
     ENV_NAME: 'staging',
-    NAV_BAR_COLOR: '#ffffff',
+    NAV_BAR_COLOR: '#FF9874',
 };
 
 let cachedConfig = null;

@@ -12,12 +12,19 @@ const FormInput = ({
     containerStyle,
     labelStyle,
     inputStyle,
+    textColor,
     placeholder,
     onPress,
+    errorMessage,
     ...inputProps
 }) => {
     const inputNode = (
-        <Input placeholder={placeholder} style={[styles.input, inputStyle]} {...inputProps} />
+        <Input
+            placeholder={placeholder}
+            style={[styles.input, inputStyle]}
+            textColor={textColor}
+            {...inputProps}
+        />
     );
 
     return (
@@ -30,6 +37,9 @@ const FormInput = ({
             ) : (
                 inputNode
             )}
+            {errorMessage ? (
+                <Text style={styles.errorMessage}>{errorMessage}</Text>
+            ) : null}
         </View>
     );
 };
@@ -37,11 +47,24 @@ const FormInput = ({
 FormInput.propTypes = {
     label: PropTypes.string,
     width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    containerStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.number]),
-    labelStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.number]),
-    inputStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.number]),
+    containerStyle: PropTypes.oneOfType([
+        PropTypes.object,
+        PropTypes.array,
+        PropTypes.number,
+    ]),
+    labelStyle: PropTypes.oneOfType([
+        PropTypes.object,
+        PropTypes.array,
+        PropTypes.number,
+    ]),
+    inputStyle: PropTypes.oneOfType([
+        PropTypes.object,
+        PropTypes.array,
+        PropTypes.number,
+    ]),
     placeholder: PropTypes.string,
     onPress: PropTypes.func,
+    errorMessage: PropTypes.string,
 };
 
 const styles = StyleSheet.create({
@@ -56,6 +79,11 @@ const styles = StyleSheet.create({
     },
     input: {
         marginBottom: 0,
+    },
+    errorMessage: {
+        marginTop: moderateSize(4),
+        color: colors.error,
+        fontSize: moderateSize(12),
     },
 });
 

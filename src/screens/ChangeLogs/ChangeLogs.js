@@ -7,10 +7,96 @@ import colors from '../../constants/colors';
 
 const LIST_CHANGE_LOG = [
     {
-        title: '0.0.17 - 26/02/2026',
+        title: '0.1.5 - 17/03/2026',
         data: [
-            '[issue_389] API P0107 Customer Booking Info',
-            '[issue_380] API P0106 Customer Booking History',
+            '[660] Fix initial data loading on search screen',
+            '[670] Keyboard overlaps email input on Forgot Password screen (Samsung S24 Ultra)',
+        ],
+    },
+    {
+        title: '0.1.4 - 17/03/2026',
+        data: [
+            '[672] Room availability changed and UI in Booking flow',
+            '[674] Fix bug version 0.1.0',
+        ],
+    },
+    {
+        title: '0.1.3 - 16/03/2026',
+        data: [
+            '[651] Display “Password changed successfully” message before Home redirect',
+            '[652] Not redirecting to Login page when token expires on',
+            '[653] Fix email validation in forgot password',
+            '[654] Fix OTP and password in forgot password',
+            '[659] Fix date picker on search room screen',
+            '[670] Resend OTP UI and behavior issues',
+        ],
+    },
+    {
+        title: '0.1.2 - 12/03/2026',
+        data: [
+            '[646] Show success message and redirect to Home after registration',
+            '[647] Incorrect validation messages for email and OTP',
+        ],
+    },
+    {
+        title: '0.1.1 - 12/03/2026',
+        data: [
+            '[630] Fix bug requirement 2026-03-10',
+            '[637] Fix bug time out and Back button during booking',
+        ],
+    },
+    {
+        title: '0.0.36 - 09/03/2026',
+        data: [
+            '[376] s106_customer_booking_cancel - Integrate API',
+            '[506] Replace Mock Profile Data with API Integration',
+        ],
+    },
+    {
+        title: '0.0.35 - 09/03/2026',
+        data: [
+            '[590] s301_payment_info - Coding',
+            '[593] s302_payment_setting - Coding',
+        ],
+    },
+    {
+        title: '0.0.34 - 09/03/2026',
+        data: [
+            '[587] s300_payment - Coding',
+        ],
+    },
+    {
+        title: '0.0.33 - 08/03/2026',
+        data: [
+            '[341] Refactor forgot password',
+            '[368] Update handle s104_customer_booking_confirm',
+            '[372] s105_customer_booking_payment - Integrate API',
+            '[466] s018_edit_profile - Integrate API',
+            '[536] s018_edit_profile - Update Design',
+        ],
+    },
+    {
+        title: '0.0.32 - 05/03/2026',
+        data: [
+            '[463] s015_customer_register - Integrate API',
+            '[464] s016_verify_OTP - Integrate API',
+            '[536] s018_edit_profile - Update Design',
+        ],
+    },
+    {
+        title: '0.0.31 - 04/03/2026',
+        data: [
+            '[364] Update handle screen s103_customer_booking',
+            '[544] Update design s102_customer_room_info',
+            '[553] Fix bug version 0.0.30',
+        ],
+    },
+    {
+        title: '0.0.30 - 03/03/2026',
+        data: [
+            '[510] Fix bug version 0.0.17',
+            '[534] Fix lỗi hiển thị icon & navigation bar trên iOS',
+            '[543] Update design s101_customer_search_room',
         ],
     },
     {

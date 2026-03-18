@@ -186,7 +186,10 @@ const BookingInfoScreen = () => {
         if (startDateRaw && endDateRaw) {
             const startDate = new Date(startDateRaw);
             const endDate = new Date(endDateRaw);
-            if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
+            if (
+                !Number.isNaN(startDate.getTime()) &&
+                !Number.isNaN(endDate.getTime())
+            ) {
                 const diffMs = endDate.getTime() - startDate.getTime();
                 const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
                 if (diffDays > 0) {
@@ -206,11 +209,10 @@ const BookingInfoScreen = () => {
 
         const roomPrice =
             booking.total_price ||
-            (primaryPayment ? primaryPayment.total : 0) || 0
-
-        const taxAndFees =
-            (primaryPayment && primaryPayment.tax) ||
+            (primaryPayment ? primaryPayment.total : 0) ||
             0;
+
+        const taxAndFees = (primaryPayment && primaryPayment.tax) || 0;
 
         const total = roomPrice + taxAndFees;
         return { roomPrice, taxAndFees, total };
@@ -247,10 +249,7 @@ const BookingInfoScreen = () => {
         ) {
             const parts = booking.booking_details.map(detail => {
                 const name =
-                    detail?.room_type?.name ||
-                    detail?.notes ||
-                    roomName ||
-                    '';
+                    detail?.room_type?.name || detail?.notes || roomName || '';
                 const count = detail?.room_count || 1;
                 if (!name) return '';
                 // Always show quantity, even when it's 1, to reflect room_count clearly
@@ -286,17 +285,7 @@ const BookingInfoScreen = () => {
 
     // Format guests similar to BookingHistoryScreen
     const guestsDisplay = useMemo(() => {
-        // Prefer top-level guest_count from P0107
-        let guestCountObj = booking.guest_count;
-
-        // Fallback: guest_count in first booking_details item
-        if (
-            !guestCountObj &&
-            Array.isArray(booking.booking_details) &&
-            booking.booking_details.length > 0
-        ) {
-            guestCountObj = booking.booking_details[0]?.guest_count;
-        }
+        const guestCountObj = booking.guest_count;
 
         if (guestCountObj) {
             const adults = guestCountObj.adults || 0;
@@ -354,7 +343,7 @@ const BookingInfoScreen = () => {
         return (
             <View style={styles.container}>
                 <Header title={t('citrine.msg000312')} showCrudText={false} />
-                <View style={[commonStyles.bookingMain, styles.loadingContainer]}>
+                <View style={[commonStyles.main, styles.loadingContainer]}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </View>
@@ -365,7 +354,7 @@ const BookingInfoScreen = () => {
         return (
             <View style={styles.container}>
                 <Header title={t('citrine.msg000312')} showCrudText={false} />
-                <View style={[commonStyles.bookingMain, styles.errorContainer]}>
+                <View style={[commonStyles.main, styles.errorContainer]}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
             </View>
@@ -376,7 +365,7 @@ const BookingInfoScreen = () => {
         <View style={styles.container}>
             <Header title={t('citrine.msg000312')} showCrudText={false} />
             <ScrollView
-                style={commonStyles.bookingMain}
+                style={commonStyles.main}
                 contentContainerStyle={[
                     commonStyles.bookingContentContainer,
                     styles.scrollContent,
@@ -465,7 +454,9 @@ const BookingInfoScreen = () => {
                         </Text>
                         <View style={styles.infoGroup}>
                             <InfoRow
-                                label={t('citrine.msg000320', { count: nights })}
+                                label={t('citrine.msg000320', {
+                                    count: nights,
+                                })}
                                 value={formatCurrency(paymentDetails.roomPrice)}
                                 isFirst={true}
                             />

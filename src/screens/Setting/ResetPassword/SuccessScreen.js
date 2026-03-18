@@ -13,7 +13,10 @@ export default function SuccessScreen() {
         route.params?.message || 'Your password has been reset successfully!'
 
     const handleDone = () => {
-        navigation.goBack();
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+        });
     };
 
     return (

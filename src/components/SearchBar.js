@@ -9,6 +9,7 @@ const SearchBar = ({
     onChangeText,
     onSubmitEditing,
     onPress,
+    inputRef,
 }) => {
     // Use controlled mode if value and onChangeText are provided, otherwise use uncontrolled mode
     const isControlled = value !== undefined && onChangeText !== undefined;
@@ -23,6 +24,12 @@ const SearchBar = ({
 
     const handleTextChange = text => {
         setSearchText(text);
+    };
+
+    const handleInputFocus = () => {
+        if (onPress) {
+            onPress();
+        }
     };
 
     const handleContainerPress = () => {
@@ -44,11 +51,13 @@ const SearchBar = ({
                 style={styles.leftIcon}
             />
             <TextInput
+                ref={inputRef}
                 style={styles.input}
                 placeholder={placeholder || 'Search'}
                 value={searchText}
                 onChangeText={handleTextChange}
                 onSubmitEditing={onSubmitEditing}
+                onFocus={handleInputFocus}
                 editable={true}
             />
             {searchText.length > 0 && (

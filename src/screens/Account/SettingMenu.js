@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Switch } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
 import { AccountSettingMenuPropTypes } from '../../utils/propTypes';
@@ -14,7 +15,82 @@ const SettingMenu = ({
     displayVersion,
     onCheckUpdates,
     onLogout,
+    userId,
 }) => {
+    const [changeLogsTapCount, setChangeLogsTapCount] = useState(0);
+    const [changeLogsUnlocked, setChangeLogsUnlocked] = useState(false);
+
+    // Build a unique storage key per account to keep unlock status isolated
+    const changeLogsStorageKey = useMemo(() => {
+        if (!userId) {
+            return null;
+        }
+        return `changeLogsUnlocked:${userId}`;
+    }, [userId]);
+
+    // Load unlock status from storage when account changes or screen mounts
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadUnlockStatus = async () => {
+            if (!changeLogsStorageKey) {
+                // No userId means we should require 7 taps again
+                setChangeLogsUnlocked(false);
+                return;
+            }
+
+            try {
+                const storedValue = await AsyncStorage.getItem(
+                    changeLogsStorageKey,
+                );
+                if (!isMounted) {
+                    return;
+                }
+                // Stored value is a string; only 'true' means unlocked
+                setChangeLogsUnlocked(storedValue === 'true');
+            } catch (error) {
+                console.warn(
+                    '[SettingMenu] Failed to load change logs status:',
+                    error,
+                );
+            }
+        };
+
+        loadUnlockStatus();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [changeLogsStorageKey]);
+
+    // Handle tap logic: 7 taps to unlock once, then 1 tap on future visits
+    const handleChangeLogsPress = async () => {
+        if (changeLogsUnlocked) {
+            navigation.navigate('ChangeLogs');
+            return;
+        }
+
+        const nextCount = changeLogsTapCount + 1;
+        if (nextCount >= 7) {
+            setChangeLogsUnlocked(true);
+            setChangeLogsTapCount(0);
+            if (changeLogsStorageKey) {
+                try {
+                    // Persist unlock status for this account
+                    await AsyncStorage.setItem(changeLogsStorageKey, 'true');
+                } catch (error) {
+                    console.warn(
+                        '[SettingMenu] Failed to save change logs status:',
+                        error,
+                    );
+                }
+            }
+            navigation.navigate('ChangeLogs');
+        } else {
+            setChangeLogsTapCount(nextCount);
+        }
+    };
+
     return (
         <>
             {/* Settings Card */}
@@ -166,7 +242,7 @@ const SettingMenu = ({
                 {/* Version Info */}
                 <TouchableOpacity
                     style={[styles.settingRow, styles.lastSettingRow]}
-                    onPress={() => navigation.navigate('ChangeLogs')}>
+                    onPress={handleChangeLogsPress}>
                     <View style={styles.settingLabelContainer}>
                         <Icon
                             name="circle-info"

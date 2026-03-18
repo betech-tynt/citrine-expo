@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo } from './deviceInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -91,6 +91,7 @@ export async function fetchCustomerHomeData() {
     if (!token) {
         const message = 'Unauthenticated: missing token. Please login again.';
         console.error('Error loading customer home data:', message);
+        notifyUnauthenticated(message);
         throw new Error(message);
     }
 
@@ -112,7 +113,8 @@ export async function fetchCustomerHomeData() {
         // Destructure and return the relevant data
         const { status, message, data: responseData } = data.data.customer_home;
 
-        const roleCode = responseData?.user_data?.user?.role?.code;
+        const user = responseData?.user_data?.user;
+        const roleCode = user?.role?.code;
 
         console.log('Customer Home Response:', {
             status,
@@ -136,6 +138,21 @@ export async function fetchCustomerHomeData() {
             } catch (storageError) {
                 console.warn(
                     'Failed to persist userRoleCode to AsyncStorage:',
+                    storageError,
+                );
+            }
+        }
+
+        // Persist basic customer user profile for booking screens (name, email, etc.)
+        if (user) {
+            try {
+                await AsyncStorage.setItem(
+                    'customerUser',
+                    JSON.stringify(user),
+                );
+            } catch (storageError) {
+                console.warn(
+                    'Failed to persist customerUser to AsyncStorage:',
                     storageError,
                 );
             }

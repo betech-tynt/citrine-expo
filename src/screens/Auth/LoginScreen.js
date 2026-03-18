@@ -1,17 +1,27 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
+import {
+    StyleSheet,
+    Text,
+    Image,
+    View,
+    Alert,
+    TouchableOpacity,
+    Modal,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Alert, Image, Modal, StyleSheet, Text, View } from 'react-native';
-import LoginImage from '../../assets/images/backgrounds/locker-login.png';
 import Button from '../../components/Button';
-import Header from '../../components/Header';
 import Input from '../../components/Input';
-import { ENV } from '../../config/env';
-import { login } from '../../services/auth';
-import { moderateSize } from '../../styles';
 import { commonStyles } from '../../theme/commonStyles';
+import Header from '../../components/Header';
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login } from '../../services/auth';
+import LoginImage from '../../assets/images/backgrounds/locker-login.png';
+import { getUniqueId } from '../../services/deviceInfo';
 import { getDisplayVersion } from '../../utils/versionUtils';
+import { moderateSize } from '../../styles';
+import colors from '../../constants/colors';
+import { ENV } from '../../config/env';
 
 const LAST_USERNAME_KEY = 'lastUsername';
 const LAST_PASSWORD_KEY = 'lastPassword';
@@ -29,8 +39,7 @@ const LoginScreen = () => {
 
     const performLogin = async (loginUsername, loginPassword) => {
         try {
-            // Expo Go does not support react-native-device-info; use a simple fallback id
-            const deviceToken = 'expo-go-device';
+            const deviceToken = await getUniqueId();
             await login(loginUsername, loginPassword, deviceToken);
             await AsyncStorage.setItem('isLogin', 'true');
             await AsyncStorage.setItem(LAST_USERNAME_KEY, loginUsername);
@@ -76,9 +85,14 @@ const LoginScreen = () => {
     const handleEndIconPress = () => {
         setPasswordVisible(prev => !prev);
     };
-    // const handleBackPress = () => {
-    //     navigation.navigate('Main');
-    // };
+
+    const handleSignUpPress = () => {
+        navigation.navigate('SignUp');
+    };
+
+    const handleForgotPasswordPress = () => {
+        navigation.navigate('ForgotPassword');
+    };
 
     return (
         <View style={styles.container}>
@@ -87,6 +101,7 @@ const LoginScreen = () => {
                 // onBackPress={handleBackPress}
                 showCrudText={false}
                 showHomeIcon={false}
+                showBackIcon={false}
             />
             <View style={commonStyles.main}>
                 <Text style={styles.welcomeBack}>{t('auth.welcomeBack')}</Text>
@@ -110,11 +125,31 @@ const LoginScreen = () => {
                     value={password}
                     onChangeText={text => setPassword(text)}
                 />
+                <TouchableOpacity
+                    onPress={handleForgotPasswordPress}
+                    style={styles.forgotPasswordButton}
+                    activeOpacity={0.7}>
+                    <Text style={styles.forgotPasswordText}>
+                        {t('citrine.msg000334', {
+                            defaultValue: t('citrine.msg000334'),
+                        })}
+                    </Text>
+                </TouchableOpacity>
                 <Button
                     title={t('auth.signIn')}
                     onPress={handleLogin}
                     style={styles.signInButton}
                 />
+
+                <View style={styles.signUpContainer}>
+                    <Text style={styles.signUpText}>{t('auth.noAccount')}</Text>
+                    <TouchableOpacity onPress={handleSignUpPress}>
+                        <Text style={styles.signUpLink}>
+                            {t('auth.signUp')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
                 {isStagingEnv && (
                     <>
                         <Button
@@ -214,19 +249,41 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(12),
         fontWeight: '500',
         color: '#343434',
-        marginBottom: moderateSize(20),
+        marginBottom: moderateSize(12),
     },
     lockIcon: {
         width: moderateSize(140),
         height: moderateSize(140),
-        marginVertical: moderateSize(20),
+        marginVertical: moderateSize(10),
         borderRadius: moderateSize(50),
         alignSelf: 'center',
-        marginTop: moderateSize(20),
-        marginBottom: moderateSize(60),
+        marginTop: moderateSize(8),
+        marginBottom: moderateSize(28),
     },
     signInButton: {
-        marginTop: moderateSize(20),
+        marginTop: moderateSize(10),
+    },
+    forgotPasswordButton: {
+        alignSelf: 'flex-end',
+        marginTop: moderateSize(2),
+        marginBottom: moderateSize(2),
+    },
+    forgotPasswordText: {
+        color: colors.primary,
+        fontSize: moderateSize(12),
+        fontWeight: '600',
+    },
+    signUpContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: moderateSize(16),
+    },
+    signUpText: {
+        color: colors.textSecondary,
+    },
+    signUpLink: {
+        color: colors.primary,
+        marginLeft: moderateSize(4),
     },
     modalOverlay: {
         flex: 1,

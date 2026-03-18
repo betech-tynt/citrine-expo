@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+// s100_customer_home
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     FlatList,
     ScrollView,
@@ -10,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Header from '../../components/Header';
 import { commonStyles } from '../../theme/commonStyles';
@@ -21,69 +22,69 @@ import colors from '../../constants/colors';
 import {
     PromotionCardPropTypes,
     LodgingCardPropTypes,
-    StarRatingPropTypes,
 } from '../../utils/propTypes';
 import { Image } from 'react-native';
 import { fetchCustomerHomeData } from '../../services/apiCustomerHome';
+import StarRating from '../../components/StarRating';
+import { formatCurrency } from '../../utils/formatCurrency';
+import { isAuthError, handleAuthError } from '../../utils/authErrorHandler';
 
 const MOCK_PROMOTIONS = [
-    { id: '1', title: 'Giảm giá 20% cho lần đặt phòng đầu tiên!' },
-    { id: '2', title: 'Ở 3 đêm, trả tiền 2 đêm' },
-    { id: '3', title: 'Ở 1 đêm, trả tiền 1 đêm' },
-    { id: '4', title: 'Ở 5 đêm, trả tiền 3 đêm' },
-    { id: '5', title: 'Ở free 1 đêm, trả tiền 1 đêm' },
+    {
+        id: '1',
+        badgeKey: 'msg000560',
+        titleKey: 'msg000566',
+        descriptionKey: 'msg000572',
+        valueKey: 'msg000578',
+        conditionKeys: ['msg000584'],
+        type: 'PERCENTAGE',
+    },
+    {
+        id: '2',
+        badgeKey: 'msg000561',
+        titleKey: 'msg000567',
+        descriptionKey: 'msg000573',
+        valueKey: 'msg000579',
+        conditionKeys: ['msg000585', 'msg000591'],
+        type: 'PERCENTAGE',
+    },
+    {
+        id: '3',
+        badgeKey: 'msg000562',
+        titleKey: 'msg000568',
+        descriptionKey: 'msg000574',
+        valueKey: 'msg000580',
+        conditionKeys: ['msg000586'],
+        type: 'FIXED_AMOUNT',
+    },
+    {
+        id: '4',
+        badgeKey: 'msg000563',
+        titleKey: 'msg000569',
+        descriptionKey: 'msg000575',
+        valueKey: 'msg000581',
+        conditionKeys: ['msg000587'],
+        type: 'BUY_MORE_SAVE_MORE',
+    },
+    {
+        id: '5',
+        badgeKey: 'msg000564',
+        titleKey: 'msg000570',
+        descriptionKey: 'msg000576',
+        valueKey: 'msg000582',
+        conditionKeys: ['msg000588', 'msg000594'],
+        type: 'SEASONAL',
+    },
+    {
+        id: '6',
+        badgeKey: 'msg000565',
+        titleKey: 'msg000571',
+        descriptionKey: 'msg000577',
+        valueKey: 'msg000583',
+        conditionKeys: ['msg000589'],
+        type: 'LOYALTY',
+    },
 ];
-
-const StarRating = ({ rating = 0 }) => {
-    const stars = useMemo(() => {
-        const full = Math.floor(rating);
-        const hasHalf = rating - full >= 0.5;
-
-        return Array.from({ length: 5 }).map((_, idx) => {
-            if (idx < full)
-                return (
-                    <CustomIcon
-                        key={idx}
-                        type="FontAwesome5"
-                        solid
-                        name="star"
-                        size={12}
-                        color={'#FFD700'}
-                    />
-                );
-            if (idx === full && hasHalf)
-                return (
-                    <CustomIcon
-                        key={idx}
-                        type="FontAwesome5"
-                        solid
-                        name="star-half"
-                        size={12}
-                        color={'#FFD700'}
-                    />
-                );
-            return (
-                <CustomIcon
-                    key={idx}
-                    type="FontAwesome5"
-                    name="star"
-                    size={12}
-                    color={'#FFD700'}
-                />
-            );
-        });
-    }, [rating]);
-
-    return (
-        <View style={styles.ratingRow}>
-            {stars.map((s, idx) => (
-                <Text key={String(idx)} style={styles.ratingStar}>
-                    {s}
-                </Text>
-            ))}
-        </View>
-    );
-};
 
 const LodgingCard = ({
     name,
@@ -119,19 +120,137 @@ const LodgingCard = ({
     );
 };
 
-const PromotionCard = ({ title }) => {
+const PromotionCard = ({
+    badge,
+    title,
+    description,
+    value,
+    conditions,
+    type,
+    t,
+}) => {
+    const getPromotionStyles = () => {
+        const baseStyles = {
+            borderRadius: moderateSize(15),
+            padding: moderateSize(15),
+            minWidth: moderateSize(280),
+            flex: null,
+            marginRight: moderateSize(15),
+        };
+
+        switch (type) {
+            case 'PERCENTAGE':
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#4A44C4',
+                };
+            case 'FIXED_AMOUNT':
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#FF6B6B',
+                };
+            case 'BUY_MORE_SAVE_MORE':
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#4ECDC4',
+                };
+            case 'SEASONAL':
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#FF6348',
+                };
+            case 'LOYALTY':
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#FFD93D',
+                };
+            default:
+                return {
+                    ...baseStyles,
+                    backgroundColor: '#4A44C4',
+                };
+        }
+    };
+
+    const promotionStyle = getPromotionStyles();
+    const isLoyalty = type === 'LOYALTY';
+
     return (
-        <View style={styles.promotionCard}>
-            <View style={styles.promotionImagePlaceholder} />
-            <View style={styles.promotionTextContainer}>
-                <Text style={styles.promotionTitle}>{title}</Text>
+        <View
+            style={[
+                styles.promotionCardBase,
+                {
+                    backgroundColor: promotionStyle.backgroundColor,
+                    borderRadius: promotionStyle.borderRadius,
+                    padding: promotionStyle.padding,
+                    minWidth: promotionStyle.minWidth,
+                    marginRight: promotionStyle.marginRight,
+                },
+            ]}>
+            {/* Badge */}
+            <View
+                style={[
+                    styles.promotionBadge,
+                    {
+                        backgroundColor: isLoyalty
+                            ? 'rgba(51, 51, 51, 0.2)'
+                            : 'rgba(255, 255, 255, 0.3)',
+                    },
+                ]}>
+                <Text
+                    style={[
+                        styles.promotionBadgeText,
+                        { color: isLoyalty ? '#333' : '#fff' },
+                    ]}>
+                    {badge}
+                </Text>
+            </View>
+
+            {/* Title */}
+            <Text
+                style={[
+                    styles.promotionCardTitle,
+                    { color: isLoyalty ? '#333' : '#fff' },
+                ]}>
+                {title}
+            </Text>
+
+            {/* Description */}
+            <Text
+                style={[
+                    styles.promotionCardDescription,
+                    { color: isLoyalty ? '#333' : '#fff' },
+                ]}>
+                {description}
+            </Text>
+
+            {/* Details Section */}
+            <View style={styles.promotionDetailsContainer}>
+                <Text
+                    style={[
+                        styles.promotionValue,
+                        { color: isLoyalty ? '#333' : '#fff' },
+                    ]}>
+                    {value}
+                </Text>
+                <View style={styles.promotionConditionsBox}>
+                    {conditions.map((condition, index) => (
+                        <Text
+                            key={index}
+                            style={[
+                                styles.promotionCondition,
+                                { color: isLoyalty ? '#333' : '#fff' },
+                            ]}>
+                            {condition}
+                        </Text>
+                    ))}
+                </View>
             </View>
         </View>
     );
 };
 
 // Define prop types for the components
-StarRating.propTypes = StarRatingPropTypes;
 LodgingCard.propTypes = LodgingCardPropTypes;
 PromotionCard.propTypes = PromotionCardPropTypes;
 
@@ -145,26 +264,6 @@ const CustomerHome = () => {
     const [lodgings, setLodgings] = useState([]);
     const [promotions, setPromotions] = useState([]);
 
-    /**
-     * Handle authentication failure by clearing token and redirecting to Login
-     */
-    const handleAuthRedirect = useCallback(async () => {
-        console.log(
-            '[CustomerHome] Auth failure detected, clearing token and redirecting to Login...',
-        );
-        try {
-            await AsyncStorage.removeItem('token');
-            navigation.dispatch(
-                CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }],
-                }),
-            );
-        } catch (e) {
-            console.error('[CustomerHome] Failed to handle auth redirect:', e);
-        }
-    }, [navigation]);
-
     // State for search text
     const [searchText, setSearchText] = useState('');
 
@@ -176,7 +275,7 @@ const CustomerHome = () => {
             // Double check token before calling API
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                await handleAuthRedirect();
+                handleAuthError(navigation);
                 return;
             }
 
@@ -196,7 +295,7 @@ const CustomerHome = () => {
                 const mappedRooms = rooms.map(room => {
                     const hasPrice = !!room.min_price;
                     const formattedPrice = hasPrice
-                        ? `${room.min_price.toLocaleString()}đ`
+                        ? formatCurrency(room.min_price)
                         : t('common.priceNotAvailable');
 
                     return {
@@ -232,13 +331,8 @@ const CustomerHome = () => {
             const errorMessage = err.message || '';
 
             // Check if error is authentication related
-            if (
-                errorMessage.toLowerCase().includes('unauthenticated') ||
-                errorMessage.toLowerCase().includes('unauthorized') ||
-                errorMessage.toLowerCase().includes('missing token') ||
-                errorMessage.toLowerCase().includes('jwt')
-            ) {
-                await handleAuthRedirect();
+            if (isAuthError(errorMessage)) {
+                handleAuthError(navigation);
                 return;
             }
 
@@ -248,7 +342,7 @@ const CustomerHome = () => {
         } finally {
             setLoading(false);
         }
-    }, [t, handleAuthRedirect]);
+    }, [t, navigation]);
 
     // Fetch customer home data on component mount
     useEffect(() => {
@@ -267,6 +361,13 @@ const CustomerHome = () => {
         navigation.navigate('CustomerSearchRoom', { searchQuery: searchText });
     };
 
+    const handleDateFilterPress = () => {
+        navigation.navigate('CustomerSearchRoom', {
+            searchQuery: searchText,
+            openFilterModal: true,
+        });
+    };
+
     // Loading state
     if (loading) {
         return (
@@ -281,11 +382,16 @@ const CustomerHome = () => {
                     rightIconName="bell-o"
                     onRightIconPress={() => {}}
                 />
-                <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.loadingText}>
-                        {t('common.loading')}
-                    </Text>
+                <View style={commonStyles.main}>
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator
+                            size="large"
+                            color={colors.primary}
+                        />
+                        <Text style={styles.loadingText}>
+                            {t('common.loading')}
+                        </Text>
+                    </View>
                 </View>
             </SafeAreaView>
         );
@@ -401,37 +507,6 @@ const CustomerHome = () => {
                         onPress={handleSearchPress}
                     />
 
-                    <TouchableOpacity
-                        style={styles.historyCard}
-                        accessibilityRole="button"
-                        onPress={() =>
-                            navigation.navigate('BookingHistoryScreen')
-                        }
-                        activeOpacity={0.7}>
-                        <View style={styles.historyIconContainer}>
-                            <CustomIcon
-                                type="FontAwesome5"
-                                name="history"
-                                size={16}
-                                color={colors.primary}
-                            />
-                        </View>
-                        <View style={styles.historyTextContainer}>
-                            <Text style={styles.historyTitle}>
-                                {t('bookingHistory.title')}
-                            </Text>
-                            <Text style={styles.historySubtitle}>
-                                {t('customerHome.viewBookingHistoryHint')}
-                            </Text>
-                        </View>
-                        <CustomIcon
-                            type="FontAwesome5"
-                            name="chevron-right"
-                            size={14}
-                            color={colors.textSecondary}
-                        />
-                    </TouchableOpacity>
-
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionTitle}>
                             {t('customerHome.lodgingTitle')}
@@ -440,13 +515,13 @@ const CustomerHome = () => {
                         <TouchableOpacity
                             accessibilityRole="button"
                             style={styles.filterButton}
-                            onPress={() => {}}>
+                            onPress={handleDateFilterPress}>
                             <Text style={styles.filterText}>
-                                {t('customerHome.filterByPrice')}
+                                {t('customerHome.filterByDate')}
                             </Text>
                             <CustomIcon
                                 type="FontAwesome5"
-                                name="filter"
+                                name="calendar-alt"
                                 size={12}
                                 color={colors.primary}
                             />
@@ -455,7 +530,7 @@ const CustomerHome = () => {
 
                     <FlatList
                         data={lodgings}
-                        keyExtractor={item => item.id}
+                        keyExtractor={item => item?.id?.toString() || ''}
                         renderItem={({ item }) => (
                             <LodgingCard
                                 name={item.name}
@@ -478,11 +553,27 @@ const CustomerHome = () => {
                             </Text>
                         </View>
 
-                        <View style={styles.promotionList}>
-                            {promotions.map(p => (
-                                <PromotionCard key={p.id} title={p.title} />
-                            ))}
-                        </View>
+                        <FlatList
+                            data={promotions}
+                            keyExtractor={item => item.id}
+                            renderItem={({ item }) => (
+                                <PromotionCard
+                                    badge={t(item.badgeKey)}
+                                    title={t(item.titleKey)}
+                                    description={t(item.descriptionKey)}
+                                    value={t(item.valueKey)}
+                                    conditions={item.conditionKeys.map(key =>
+                                        t(key),
+                                    )}
+                                    type={item.type}
+                                    t={t}
+                                />
+                            )}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.promotionListContent}
+                            style={styles.promotionListScroll}
+                        />
                     </View>
                 </ScrollView>
             </View>
@@ -502,7 +593,6 @@ const styles = StyleSheet.create({
 
     scrollContent: {
         paddingBottom: moderateSize(20),
-        paddingTop: moderateSize(20),
     },
 
     heroHeader: {
@@ -657,40 +747,68 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(18),
     },
 
-    promotionList: {
-        // paddingHorizontal: 20,
+    promotionListScroll: {
         marginTop: moderateSize(15),
     },
 
-    promotionCard: {
-        flexDirection: 'row',
-        backgroundColor: colors.white,
-        borderRadius: moderateSize(15),
-        marginBottom: moderateSize(15),
-        overflow: 'hidden',
-        alignItems: 'center',
+    promotionListContent: {
+        paddingHorizontal: moderateSize(20),
+    },
+
+    promotionCardBase: {
         shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 2,
+        elevation: 3,
     },
 
-    promotionImagePlaceholder: {
-        width: moderateSize(100),
-        height: moderateSize(100),
-        backgroundColor: '#CCCCCC',
+    promotionBadge: {
+        alignSelf: 'flex-start',
+        paddingVertical: moderateSize(4),
+        paddingHorizontal: moderateSize(10),
+        borderRadius: moderateSize(20),
+        marginBottom: moderateSize(10),
     },
 
-    promotionTextContainer: {
-        flex: 1,
-        padding: moderateSize(15),
-    },
-
-    promotionTitle: {
-        fontSize: moderateSize(16),
+    promotionBadgeText: {
+        fontSize: moderateSize(12),
         fontWeight: '700',
-        color: colors.textPrimary,
+    },
+
+    promotionCardTitle: {
+        fontSize: moderateSize(18),
+        fontWeight: '700',
+        marginBottom: moderateSize(8),
+    },
+
+    promotionCardDescription: {
+        fontSize: moderateSize(13),
+        marginBottom: moderateSize(12),
+        opacity: 0.95,
+        lineHeight: moderateSize(18),
+    },
+
+    promotionDetailsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+
+    promotionValue: {
+        fontSize: moderateSize(24),
+        fontWeight: '700',
+    },
+
+    promotionConditionsBox: {
+        alignItems: 'flex-end',
+    },
+
+    promotionCondition: {
+        fontSize: moderateSize(12),
+        opacity: 0.9,
+        lineHeight: moderateSize(16),
+        marginBottom: moderateSize(2),
     },
 
     promotionSection: {
@@ -736,6 +854,13 @@ const styles = StyleSheet.create({
     },
 
     centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: moderateSize(40),
+    },
+
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
