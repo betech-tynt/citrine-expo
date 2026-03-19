@@ -1,27 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+    Alert,
+    Image,
+    Modal,
     StyleSheet,
     Text,
-    Image,
-    View,
-    Alert,
     TouchableOpacity,
-    Modal,
+    View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import LoginImage from '../../assets/images/backgrounds/locker-login.png';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
-import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../../services/auth';
-import LoginImage from '../../assets/images/backgrounds/locker-login.png';
-import { getUniqueId } from '../../services/deviceInfo';
-import { getDisplayVersion } from '../../utils/versionUtils';
-import { moderateSize } from '../../styles';
-import colors from '../../constants/colors';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import { ENV } from '../../config/env';
+import colors from '../../constants/colors';
+import { login } from '../../services/auth';
+import { getUniqueId } from '../../services/deviceInfo';
+import { moderateSize } from '../../styles';
+import { getDisplayVersion } from '../../utils/versionUtils';
 
 const LAST_USERNAME_KEY = 'lastUsername';
 const LAST_PASSWORD_KEY = 'lastPassword';
@@ -95,15 +94,15 @@ const LoginScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('auth.signIn')}
-                // onBackPress={handleBackPress}
-                showCrudText={false}
-                showHomeIcon={false}
-                showBackIcon={false}
-            />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: t('auth.signIn'),
+                showCrudText: false,
+                showHomeIcon: false,
+                showBackIcon: false,
+            }}>
+            <View style={styles.mainContent}>
                 <Text style={styles.welcomeBack}>{t('auth.welcomeBack')}</Text>
                 <Text style={styles.signInPrompt}>
                     {t('auth.signInPrompt')}
@@ -231,13 +230,14 @@ const LoginScreen = () => {
                 )}
                 <Text style={styles.versionText}>{displayVersion}</Text>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    mainContent: {
         flex: 1,
+        padding: moderateSize(16),
     },
     welcomeBack: {
         fontSize: moderateSize(24),

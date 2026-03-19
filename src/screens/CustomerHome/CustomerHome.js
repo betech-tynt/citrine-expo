@@ -9,12 +9,10 @@ import {
     View,
     ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import Header from '../../components/Header';
-import { commonStyles } from '../../theme/commonStyles';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import SearchBar from '../../components/SearchBar';
 import { moderateSize } from '../../styles/moderateSize';
 import CustomIcon from '../../components/CustomIcon';
@@ -368,49 +366,34 @@ const CustomerHome = () => {
         });
     };
 
+    // Common header props
+    const headerProps = {
+        title: t('customerHome.welcome'),
+        showBackIcon: false,
+        showCrudText: false,
+        showHomeIcon: false,
+        rightIconName: 'bell-o',
+        onRightIconPress: () => {},
+    };
+
     // Loading state
     if (loading) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('customerHome.welcome')}
-                    showBackIcon={false}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    rightIconName="bell-o"
-                    onRightIconPress={() => {}}
-                />
-                <View style={commonStyles.main}>
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator
-                            size="large"
-                            color={colors.primary}
-                        />
-                        <Text style={styles.loadingText}>
-                            {t('common.loading')}
-                        </Text>
-                    </View>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={styles.loadingText}>
+                        {t('common.loading')}
+                    </Text>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     // Error state
     if (error && lodgings.length === 0) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('customerHome.welcome')}
-                    showBackIcon={false}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    rightIconName="bell-o"
-                    onRightIconPress={() => {}}
-                />
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -436,24 +419,14 @@ const CustomerHome = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     // Empty state
     if (!loading && lodgings.length === 0 && promotions.length === 0) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('customerHome.welcome')}
-                    showBackIcon={false}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    rightIconName="bell-o"
-                    onRightIconPress={() => {}}
-                />
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -478,106 +451,94 @@ const CustomerHome = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <SafeAreaView
-            edges={['left', 'right', 'bottom']}
-            style={styles.container}>
-            <Header
-                title={t('customerHome.welcome')}
-                showBackIcon={false}
-                showCrudText={false}
-                showHomeIcon={false}
-                rightIconName="bell-o"
-                onRightIconPress={() => {}}
-            />
-            <View style={commonStyles.main}>
-                <ScrollView
-                    style={styles.scroll}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}>
-                    <SearchBar
-                        placeholder={t('customerHome.searchPlaceholder')}
-                        value={searchText}
-                        onChangeText={setSearchText}
-                        onSubmitEditing={handleSearchPress}
-                        onPress={handleSearchPress}
-                    />
+        <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}>
+                <SearchBar
+                    placeholder={t('customerHome.searchPlaceholder')}
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    onSubmitEditing={handleSearchPress}
+                    onPress={handleSearchPress}
+                />
 
+                <View style={styles.sectionRow}>
+                    <Text style={styles.sectionTitle}>
+                        {t('customerHome.lodgingTitle')}
+                    </Text>
+
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        style={styles.filterButton}
+                        onPress={handleDateFilterPress}>
+                        <Text style={styles.filterText}>
+                            {t('customerHome.filterByDate')}
+                        </Text>
+                        <CustomIcon
+                            type="FontAwesome5"
+                            name="calendar-alt"
+                            size={12}
+                            color={colors.primary}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                <FlatList
+                    data={lodgings}
+                    keyExtractor={item => item?.id?.toString() || ''}
+                    renderItem={({ item }) => (
+                        <LodgingCard
+                            name={item.name}
+                            price={item.price}
+                            priceLabel={item.priceLabel}
+                            coverImage={item.coverImage}
+                            rating={item.rating}
+                            onPress={() => handleRoomPress(item)}
+                        />
+                    )}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.lodgingListContent}
+                    style={styles.lodgingList}
+                />
+                <View style={styles.promotionSection}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionTitle}>
-                            {t('customerHome.lodgingTitle')}
+                            {t('customerHome.promotionTitle')}
                         </Text>
-
-                        <TouchableOpacity
-                            accessibilityRole="button"
-                            style={styles.filterButton}
-                            onPress={handleDateFilterPress}>
-                            <Text style={styles.filterText}>
-                                {t('customerHome.filterByDate')}
-                            </Text>
-                            <CustomIcon
-                                type="FontAwesome5"
-                                name="calendar-alt"
-                                size={12}
-                                color={colors.primary}
-                            />
-                        </TouchableOpacity>
                     </View>
 
                     <FlatList
-                        data={lodgings}
-                        keyExtractor={item => item?.id?.toString() || ''}
+                        data={promotions}
+                        keyExtractor={item => item.id}
                         renderItem={({ item }) => (
-                            <LodgingCard
-                                name={item.name}
-                                price={item.price}
-                                priceLabel={item.priceLabel}
-                                coverImage={item.coverImage}
-                                rating={item.rating}
-                                onPress={() => handleRoomPress(item)}
+                            <PromotionCard
+                                badge={t(item.badgeKey)}
+                                title={t(item.titleKey)}
+                                description={t(item.descriptionKey)}
+                                value={t(item.valueKey)}
+                                conditions={item.conditionKeys.map(key =>
+                                    t(key),
+                                )}
+                                type={item.type}
+                                t={t}
                             />
                         )}
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.lodgingListContent}
-                        style={styles.lodgingList}
+                        contentContainerStyle={styles.promotionListContent}
+                        style={styles.promotionListScroll}
                     />
-                    <View style={styles.promotionSection}>
-                        <View style={styles.sectionRow}>
-                            <Text style={styles.sectionTitle}>
-                                {t('customerHome.promotionTitle')}
-                            </Text>
-                        </View>
-
-                        <FlatList
-                            data={promotions}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <PromotionCard
-                                    badge={t(item.badgeKey)}
-                                    title={t(item.titleKey)}
-                                    description={t(item.descriptionKey)}
-                                    value={t(item.valueKey)}
-                                    conditions={item.conditionKeys.map(key =>
-                                        t(key),
-                                    )}
-                                    type={item.type}
-                                    t={t}
-                                />
-                            )}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.promotionListContent}
-                            style={styles.promotionListScroll}
-                        />
-                    </View>
-                </ScrollView>
-            </View>
-        </SafeAreaView>
+                </View>
+            </ScrollView>
+        </MasterPageLayout>
     );
 };
 
@@ -592,6 +553,7 @@ const styles = StyleSheet.create({
     },
 
     scrollContent: {
+        padding: moderateSize(16),
         paddingBottom: moderateSize(20),
     },
 
@@ -692,6 +654,7 @@ const styles = StyleSheet.create({
         borderRadius: moderateSize(15),
         padding: moderateSize(10),
         marginRight: moderateSize(15),
+        marginVertical: moderateSize(2),
         shadowColor: '#000',
         shadowOpacity: 0.08,
         shadowRadius: 6,
@@ -761,6 +724,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
+        marginHorizontal: moderateSize(2),
     },
 
     promotionBadge: {

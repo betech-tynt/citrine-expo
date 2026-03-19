@@ -1,22 +1,24 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Header from '../../../../components/Header';
-import { commonStyles } from '../../../../theme/commonStyles';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
+import { moderateSize } from '../../../../styles';
 
 const RoomInfoScreen = () => {
     return (
-        <View style={styles.container}>
-            <Header title="Room Info" showCrudText={false} />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{ title: 'Room Info', showCrudText: false }}>
+            <View style={styles.content}>
                 <Text>RoomInfoScreen</Text>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    content: {
         flex: 1,
+        padding: moderateSize(16),
     },
 });
 

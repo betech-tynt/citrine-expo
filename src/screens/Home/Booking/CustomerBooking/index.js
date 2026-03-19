@@ -3,10 +3,9 @@ import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '../../../../components/Header';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import { moderateSize } from '../../../../styles';
 import colors from '../../../../constants/colors';
-import { commonStyles } from '../../../../theme/commonStyles';
 import { formatDate } from '../../../../utils/formatDate';
 import { formatCurrency } from '../../../../utils/formatCurrency';
 import BookingInfoRow from './BookingInfoRow';
@@ -106,10 +105,16 @@ export default function CustomerBookingScreen() {
                 if (typeof parsed.children === 'number') {
                     setChildrenCount(parsed.children);
                 }
-                if (typeof parsed.checkInISO === 'string' && parsed.checkInISO) {
+                if (
+                    typeof parsed.checkInISO === 'string' &&
+                    parsed.checkInISO
+                ) {
                     setCheckInISO(parsed.checkInISO);
                 }
-                if (typeof parsed.checkOutISO === 'string' && parsed.checkOutISO) {
+                if (
+                    typeof parsed.checkOutISO === 'string' &&
+                    parsed.checkOutISO
+                ) {
                     setCheckOutISO(parsed.checkOutISO);
                 }
             } catch (error) {
@@ -156,7 +161,14 @@ export default function CustomerBookingScreen() {
         };
 
         persistGuests();
-    }, [hasLoadedCache, adultCount, childrenCount, checkInISO, checkOutISO, guestStorageKey]);
+    }, [
+        hasLoadedCache,
+        adultCount,
+        childrenCount,
+        checkInISO,
+        checkOutISO,
+        guestStorageKey,
+    ]);
 
     // Booking dates state (initialize from Search filter if provided)
     const [checkInISO, setCheckInISO] = useState(() => {
@@ -366,12 +378,13 @@ export default function CustomerBookingScreen() {
 
     return (
         <>
-            <View style={styles.container}>
-                <Header
-                    title={t('booking.bookingDetailTitle')}
-                    showCrudText={false}
-                />
-                <View style={[commonStyles.main, styles.backgroundColor]}>
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: t('booking.bookingDetailTitle'),
+                    showCrudText: false,
+                }}>
+                <View style={[styles.mainContent, styles.backgroundColor]}>
                     <ScrollView
                         contentContainerStyle={styles.scrollContent}
                         showsVerticalScrollIndicator={false}>
@@ -554,7 +567,7 @@ export default function CustomerBookingScreen() {
                         disabled={!canContinue}
                     />
                 </View>
-            </View>
+            </MasterPageLayout>
             {/* Calendar modal for picking dates */}
             <BookingCalendarModal
                 visible={calendarVisible}
@@ -569,6 +582,10 @@ export default function CustomerBookingScreen() {
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

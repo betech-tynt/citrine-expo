@@ -8,9 +8,8 @@ import {
 } from 'react-native';
 import React, { useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import { useTranslation } from 'react-i18next';
-import { commonStyles } from '../../../theme/commonStyles';
 import { AppInput } from '../../../components/Input';
 import Button from '../../../components/Button';
 import { moderateSize } from '../../../styles';
@@ -103,13 +102,8 @@ export default function SignUpScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('auth.signUp')}
-                showCrudText={false}
-                showHomeIcon={false}
-            />
-            <View style={commonStyles.main}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('auth.signUp'), showCrudText: false, showHomeIcon: false }}>
+            <View style={styles.mainContent}>
                 <Text style={styles.signUpPrompt}>
                     {t('auth.signUpPrompt')}
                 </Text>
@@ -151,11 +145,15 @@ export default function SignUpScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

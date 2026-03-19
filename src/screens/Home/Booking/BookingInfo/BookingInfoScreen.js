@@ -11,7 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { ActivityIndicator } from 'react-native';
-import Header from '../../../../components/Header';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
@@ -25,7 +25,6 @@ import {
 } from '../../../../constants/utils';
 import { InfoRowPropTypes } from '../../../../utils/propTypes';
 import PropTypes from 'prop-types';
-import { commonStyles } from '../../../../theme/commonStyles';
 import { fetchCustomerBookingInfo } from '../../../../services/apiBookingInfo';
 import { formatDate } from '../../../../utils/formatDate';
 
@@ -339,142 +338,146 @@ const BookingInfoScreen = () => {
         Alert.alert(t('citrine.msg000319'));
     };
 
+    const headerProps = {
+        title: t('citrine.msg000312'),
+        showCrudText: false,
+    };
+
     if (loading && !bookingInfo) {
         return (
-            <View style={styles.container}>
-                <Header title={t('citrine.msg000312')} showCrudText={false} />
-                <View style={[commonStyles.main, styles.loadingContainer]}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
-            </View>
+            </MasterPageLayout>
         );
     }
 
     if (error && !bookingInfo) {
         return (
-            <View style={styles.container}>
-                <Header title={t('citrine.msg000312')} showCrudText={false} />
-                <View style={[commonStyles.main, styles.errorContainer]}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            </View>
+            </MasterPageLayout>
         );
     }
 
     return (
         <View style={styles.container}>
-            <Header title={t('citrine.msg000312')} showCrudText={false} />
-            <ScrollView
-                style={commonStyles.main}
-                contentContainerStyle={[
-                    commonStyles.bookingContentContainer,
-                    styles.scrollContent,
-                ]}>
-                <View style={styles.contentContainer}>
-                    {/* Section: Booking Status */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
-                            {t('citrine.msg000313')}
-                        </Text>
-                        <View style={styles.infoGroup}>
-                            <InfoRow
-                                label={t('citrine.msg000314')}
-                                value={bookingCode}
-                                isFirst={true}
-                            />
-                            <View
-                                style={[
-                                    styles.infoRow,
-                                    styles.infoRowWithBorder,
-                                ]}>
-                                <Text style={styles.infoLabel}>
-                                    {t('citrine.msg000313')}
-                                </Text>
-                                <StatusBadge status={booking.status} t={t} />
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    <View style={styles.contentContainer}>
+                        {/* Section: Booking Status */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('citrine.msg000313')}
+                            </Text>
+                            <View style={styles.infoGroup}>
+                                <InfoRow
+                                    label={t('citrine.msg000314')}
+                                    value={bookingCode}
+                                    isFirst={true}
+                                />
+                                <View
+                                    style={[
+                                        styles.infoRow,
+                                        styles.infoRowWithBorder,
+                                    ]}>
+                                    <Text style={styles.infoLabel}>
+                                        {t('citrine.msg000313')}
+                                    </Text>
+                                    <StatusBadge
+                                        status={booking.status}
+                                        t={t}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Section: Customer Information */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('citrine.msg000315')}
+                            </Text>
+                            <View style={styles.infoGroup}>
+                                <InfoRow
+                                    label={t('booking.fullName')}
+                                    value={customerInfo.fullName}
+                                    isFirst={true}
+                                />
+                                <InfoRow
+                                    label={t('booking.email')}
+                                    value={customerInfo.email}
+                                />
+                                <InfoRow
+                                    label={t('booking.phoneNumber')}
+                                    value={customerInfo.phoneNumber}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Section: Booking Details */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('citrine.msg000316')}
+                            </Text>
+                            <View style={styles.infoGroup}>
+                                <InfoRow
+                                    label={t('booking.hotel')}
+                                    value={hotelName}
+                                    isFirst={true}
+                                />
+                                <InfoRow
+                                    label={t('booking.room')}
+                                    value={roomDisplay}
+                                />
+                                <InfoRow
+                                    label={t('booking.checkIn')}
+                                    value={checkInDisplay}
+                                />
+                                <InfoRow
+                                    label={t('booking.checkOut')}
+                                    value={checkOutDisplay}
+                                />
+                                <InfoRow
+                                    label={t('booking.numberOfGuests')}
+                                    value={guestsDisplay}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Section: Payment Details */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('citrine.msg000317')}
+                            </Text>
+                            <View style={styles.infoGroup}>
+                                <InfoRow
+                                    label={t('citrine.msg000320', {
+                                        count: nights,
+                                    })}
+                                    value={formatCurrency(
+                                        paymentDetails.roomPrice,
+                                    )}
+                                    isFirst={true}
+                                />
+                                <InfoRow
+                                    label={t('citrine.msg000321')}
+                                    value={formatCurrency(
+                                        paymentDetails.taxAndFees,
+                                    )}
+                                />
+                                <InfoRow
+                                    label={t('citrine.msg000322')}
+                                    value={formatCurrency(paymentDetails.total)}
+                                    isTotal={true}
+                                />
                             </View>
                         </View>
                     </View>
-
-                    {/* Section: Customer Information */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
-                            {t('citrine.msg000315')}
-                        </Text>
-                        <View style={styles.infoGroup}>
-                            <InfoRow
-                                label={t('booking.fullName')}
-                                value={customerInfo.fullName}
-                                isFirst={true}
-                            />
-                            <InfoRow
-                                label={t('booking.email')}
-                                value={customerInfo.email}
-                            />
-                            <InfoRow
-                                label={t('booking.phoneNumber')}
-                                value={customerInfo.phoneNumber}
-                            />
-                        </View>
-                    </View>
-
-                    {/* Section: Booking Details */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
-                            {t('citrine.msg000316')}
-                        </Text>
-                        <View style={styles.infoGroup}>
-                            <InfoRow
-                                label={t('booking.hotel')}
-                                value={hotelName}
-                                isFirst={true}
-                            />
-                            <InfoRow
-                                label={t('booking.room')}
-                                value={roomDisplay}
-                            />
-                            <InfoRow
-                                label={t('booking.checkIn')}
-                                value={checkInDisplay}
-                            />
-                            <InfoRow
-                                label={t('booking.checkOut')}
-                                value={checkOutDisplay}
-                            />
-                            <InfoRow
-                                label={t('booking.numberOfGuests')}
-                                value={guestsDisplay}
-                            />
-                        </View>
-                    </View>
-
-                    {/* Section: Payment Details */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
-                            {t('citrine.msg000317')}
-                        </Text>
-                        <View style={styles.infoGroup}>
-                            <InfoRow
-                                label={t('citrine.msg000320', {
-                                    count: nights,
-                                })}
-                                value={formatCurrency(paymentDetails.roomPrice)}
-                                isFirst={true}
-                            />
-                            <InfoRow
-                                label={t('citrine.msg000321')}
-                                value={formatCurrency(
-                                    paymentDetails.taxAndFees,
-                                )}
-                            />
-                            <InfoRow
-                                label={t('citrine.msg000322')}
-                                value={formatCurrency(paymentDetails.total)}
-                                isTotal={true}
-                            />
-                        </View>
-                    </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </MasterPageLayout>
             <View style={styles.bottomBar}>
                 <TouchableOpacity
                     style={[
@@ -537,6 +540,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     scrollContent: {
+        padding: moderateSize(16),
         paddingBottom: moderateSize(120),
     },
     contentContainer: {
@@ -555,6 +559,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         borderRadius: 10,
         padding: moderateSize(15),
+        marginHorizontal: moderateSize(2),
         shadowColor: colors.black,
         shadowOffset: {
             width: 0,

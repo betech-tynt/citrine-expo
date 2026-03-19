@@ -2,13 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import SignUpIllustration from '../../components/SignUpIllustration';
 import colors from '../../constants/colors';
-import { commonStyles } from '../../theme/commonStyles';
 import { moderateSize } from '../../styles/moderateSize';
 
 const CustomerRegisterScreen = () => {
@@ -35,14 +34,8 @@ const CustomerRegisterScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('auth.signUp')}
-                showCrudText={false}
-                onBackPress={handleBackPress}
-            />
-
-            <View style={[commonStyles.main, styles.card]}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('auth.signUp'), showCrudText: false, onBackPress: handleBackPress }}>
+            <View style={[styles.mainContent, styles.card]}>
                 <Text style={styles.title}>{t('auth.welcomeToUs')}</Text>
                 <Text style={styles.subtitle}>{t('auth.signUpPrompt')}</Text>
 
@@ -91,11 +84,15 @@ const CustomerRegisterScreen = () => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.primary,

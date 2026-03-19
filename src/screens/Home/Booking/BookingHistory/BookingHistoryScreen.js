@@ -7,11 +7,9 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { isAuthError, handleAuthError } from '../../../../utils/authErrorHandler';
-import Header from '../../../../components/Header';
-import { commonStyles } from '../../../../theme/commonStyles';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { useTranslation } from 'react-i18next';
@@ -279,75 +277,55 @@ const BookingHistoryScreen = () => {
         );
     };
 
+    const headerProps = {
+        title: t('bookingHistory.title'),
+        showCrudText: false,
+        showHomeIcon: false,
+        showBackIcon: false,
+    };
+
     if (loading && page === 1) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('bookingHistory.title')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    showBackIcon={false}
-                />
-                <View style={commonStyles.main}>
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator
-                            size="large"
-                            color={colors.primary}
-                        />
-                    </View>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator
+                        size="large"
+                        color={colors.primary}
+                    />
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     if (error) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('bookingHistory.title')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    showBackIcon={false}
-                />
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <SafeAreaView edges={['left', 'right']} style={styles.container}>
-            <Header
-                title={t('bookingHistory.title')}
-                showCrudText={false}
-                showHomeIcon={false}
-                showBackIcon={false}
+        <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <FlatList
+                data={bookings}
+                renderItem={renderBookingCard}
+                keyExtractor={item => item.id.toString()}
+                contentContainerStyle={[
+                    { padding: moderateSize(16) },
+                    bookings.length === 0 && styles.emptyContainer,
+                ]}
+                ListEmptyComponent={renderEmptyState}
+                showsVerticalScrollIndicator={false}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                onRefresh={onRefresh}
+                refreshing={loading && page === 1}
             />
-            <View style={[commonStyles.main, styles.bookingMain]}>
-                <FlatList
-                    data={bookings}
-                    renderItem={renderBookingCard}
-                    keyExtractor={item => item.id.toString()}
-                    contentContainerStyle={[
-                        commonStyles.bookingScrollContent,
-                        commonStyles.bookingContentContainer,
-                        bookings.length === 0 && styles.emptyContainer,
-                    ]}
-                    ListEmptyComponent={renderEmptyState}
-                    showsVerticalScrollIndicator={false}
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={renderFooter}
-                    onRefresh={onRefresh}
-                    refreshing={loading && page === 1}
-                />
-            </View>
-        </SafeAreaView>
+        </MasterPageLayout>
     );
 };
 
@@ -384,6 +362,7 @@ const styles = StyleSheet.create({
         borderRadius: moderateSize(10),
         padding: moderateSize(14),
         marginBottom: moderateSize(12),
+        marginHorizontal: moderateSize(2),
         shadowColor: '#000',
         shadowOpacity: 0.05,
         shadowRadius: 4,

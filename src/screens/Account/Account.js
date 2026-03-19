@@ -13,7 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
 import { logout, getUserData } from '../../services/auth';
@@ -22,7 +22,6 @@ import { ENV } from '../../config/env';
 import CustomIcon from '../../components/CustomIcon';
 import Profile from './Profile';
 import SettingMenu from './SettingMenu';
-import { commonStyles } from '../../theme/commonStyles';
 import { log } from '../../utils/handleLog';
 import { isAuthError, handleAuthError } from '../../utils/authErrorHandler';
 
@@ -219,37 +218,33 @@ const Account = () => {
         );
     };
 
+    // Common header props
+    const headerProps = {
+        title: t('setting.userProfile'),
+        showCrudText: false,
+        showHomeIcon: false,
+        showBackIcon: false,
+    };
+
     // Loading state
     if (loading) {
         return (
-            <>
-                <Header
-                    title={t('setting.userProfile')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    showBackIcon={false}
-                />
-                <View style={[commonStyles.main, styles.centerContainer]}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </>
+            </MasterPageLayout>
         );
     }
 
     // Error state
     if (error) {
         return (
-            <>
-                <Header
-                    title={t('setting.userProfile')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    showBackIcon={false}
-                />
-                <View style={[commonStyles.main, styles.centerContainer]}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
                         name="exclamation-circle"
@@ -274,48 +269,40 @@ const Account = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <>
-            <Header
-                title={t('setting.userProfile')}
-                showCrudText={false}
-                showHomeIcon={false}
-                showBackIcon={false}
-            />
-            <View style={commonStyles.main}>
-                <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}>
-                    <View style={styles.contentContainer}>
-                        <Profile
-                            t={t}
-                            userData={userData}
-                            userPhoto={userPhoto}
-                            backgroundImage={backgroundImage}
-                            onPressAvatar={handleImagePicker}
-                            onPressBackground={handleBackgroundImagePicker}
-                            onPressEditProfile={handleEditProfile}
-                        />
-                        <SettingMenu
-                            t={t}
-                            navigation={navigation}
-                            promotionEnabled={promotionEnabled}
-                            setPromotionEnabled={setPromotionEnabled}
-                            getCurrentLanguageName={getCurrentLanguageName}
-                            displayVersion={displayVersion}
-                            onCheckUpdates={handleCheckUpdates}
-                            onLogout={handleLogout}
-                            userId={userData?.code || userData?.email}
-                        />
-                    </View>
-                </ScrollView>
-            </View>
-        </>
+        <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}>
+                <View style={styles.contentContainer}>
+                    <Profile
+                        t={t}
+                        userData={userData}
+                        userPhoto={userPhoto}
+                        backgroundImage={backgroundImage}
+                        onPressAvatar={handleImagePicker}
+                        onPressBackground={handleBackgroundImagePicker}
+                        onPressEditProfile={handleEditProfile}
+                    />
+                    <SettingMenu
+                        t={t}
+                        navigation={navigation}
+                        promotionEnabled={promotionEnabled}
+                        setPromotionEnabled={setPromotionEnabled}
+                        getCurrentLanguageName={getCurrentLanguageName}
+                        displayVersion={displayVersion}
+                        onCheckUpdates={handleCheckUpdates}
+                        onLogout={handleLogout}
+                        userId={userData?.code || userData?.email}
+                    />
+                </View>
+            </ScrollView>
+        </MasterPageLayout>
     );
 };
 
@@ -329,6 +316,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
+        padding: moderateSize(16),
         paddingBottom: moderateSize(30),
     },
     main: {

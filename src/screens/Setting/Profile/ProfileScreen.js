@@ -1,21 +1,27 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { commonStyles } from '../../../theme/commonStyles';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
+import { moderateSize } from '../../../styles';
+
 const ProfileScreen = () => {
     return (
-        <View style={styles.container}>
-            <Header title="Profile" showCrudText={false} />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: 'Profile',
+                showCrudText: false,
+            }}>
+            <View style={styles.content}>
                 <Text>ProfileScreen</Text>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    content: {
         flex: 1,
+        padding: moderateSize(16),
     },
 });
 

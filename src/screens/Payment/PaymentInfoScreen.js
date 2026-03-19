@@ -13,8 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerPaymentInfo } from '../../services/apiCustomerPaymentInfo';
@@ -84,18 +83,19 @@ const PaymentInfoScreen = () => {
         loadPaymentInfo();
     }, [loadPaymentInfo]);
 
+    const headerProps = {
+        title: t('citrine.msg000521'),
+        showCrudText: false,
+        showHomeIcon: false,
+    };
+
     if (!payment) {
         return (
-            <View style={styles.container}>
-                <Header
-                    title={t('citrine.msg000521')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                />
-                <View style={commonStyles.main}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.contentContainer}>
                     <Text>No payment data</Text>
                 </View>
-            </View>
+            </MasterPageLayout>
         );
     }
 
@@ -241,13 +241,8 @@ const PaymentInfoScreen = () => {
     );
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('citrine.msg000521')}
-                showCrudText={false}
-                showHomeIcon={false}
-            />
-            <ScrollView style={commonStyles.main} scrollEnabled={true}>
+        <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ScrollView scrollEnabled={true}>
                 <View style={styles.contentContainer}>
                     {/* Subtle loading indicator while refreshing */}
                     {refreshing && (
@@ -391,7 +386,7 @@ const PaymentInfoScreen = () => {
                     </View>
                 </View>
             </ScrollView>
-        </View>
+        </MasterPageLayout>
     );
 };
 
@@ -401,8 +396,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     contentContainer: {
-        paddingHorizontal: moderateSize(16),
-        paddingVertical: moderateSize(16),
+        padding: moderateSize(16),
     },
     refreshingIndicator: {
         alignItems: 'center',

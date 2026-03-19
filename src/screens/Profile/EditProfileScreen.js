@@ -10,16 +10,15 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
 import RadioButton from '../../components/RadioButton';
 import { AppSelect } from '../../components/AppSelect';
 import colors from '../../constants/colors';
-import { commonStyles } from '../../theme/commonStyles';
 import { moderateSize } from '../../styles/moderateSize';
 import { updateProfile } from '../../services/auth';
 import { log } from '../../utils/handleLog';
@@ -314,16 +313,8 @@ const EditProfileScreen = () => {
         setDatePickerVisible(false);
     };
 
-    const handleDateChange = (event, selectedDate) => {
-        if (Platform.OS === 'android') {
-            setDatePickerVisible(false);
-        }
-        if (selectedDate) {
-            setBirthdayDate(selectedDate);
-        }
-    };
-
     const confirmDatePicker = () => {
+        // birthdayDate is already updated in real-time by DatePicker
         closeDatePicker();
     };
 
@@ -340,14 +331,18 @@ const EditProfileScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Header title={t('profile.editProfile')} showCrudText={false} />
-
-            <KeyboardAvoidingView
-                style={[commonStyles.main, styles.card]}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}>
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: t('profile.editProfile'),
+                    showCrudText: false,
+                }}>
+                <KeyboardAvoidingView
+                    style={styles.card}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.scrollContent}>
                     {/* Kanji Name - Two columns */}
                     <View style={styles.row}>
                         <FormInput
@@ -525,59 +520,48 @@ const EditProfileScreen = () => {
                     />
 
                     <View style={styles.bottomSpacer} />
-                </ScrollView>
-            </KeyboardAvoidingView>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </MasterPageLayout>
 
-            {/* DatePicker Modal */}
-            {Platform.OS === 'ios' ? (
-                <Modal
-                    visible={datePickerVisible}
-                    transparent
-                    animationType="fade"
-                    onRequestClose={closeDatePicker}>
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalCard}>
-                            <Text style={styles.modalTitle}>
-                                {t('profile.labels.birthday')}
-                            </Text>
+            {/* DatePicker Modal - react-native-date-picker with custom Modal */}
+            <Modal
+                visible={datePickerVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={closeDatePicker}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalCard}>
+                        <Text style={styles.modalTitle}>
+                            {t('profile.labels.birthday')}
+                        </Text>
 
-                            <DateTimePicker
-                                value={birthdayDate || new Date()}
-                                mode="date"
-                                display="spinner"
-                                onChange={handleDateChange}
-                                style={styles.datePicker}
+                        <DatePicker
+                            mode="date"
+                            date={birthdayDate || new Date()}
+                            onDateChange={setBirthdayDate}
+                            style={styles.datePicker}
+                        />
+
+                        <View style={styles.modalActions}>
+                            <Button
+                                title={t('common.cancel')}
+                                onPress={closeDatePicker}
+                                style={[
+                                    styles.modalButton,
+                                    styles.modalButtonSecondary,
+                                ]}
+                                textStyle={styles.modalButtonSecondaryText}
                             />
-
-                            <View style={styles.modalActions}>
-                                <Button
-                                    title={t('common.cancel')}
-                                    onPress={closeDatePicker}
-                                    style={[
-                                        styles.modalButton,
-                                        styles.modalButtonSecondary,
-                                    ]}
-                                    textStyle={styles.modalButtonSecondaryText}
-                                />
-                                <Button
-                                    title={t('common.ok')}
-                                    onPress={confirmDatePicker}
-                                    style={styles.modalButton}
-                                />
-                            </View>
+                            <Button
+                                title={t('common.ok')}
+                                onPress={confirmDatePicker}
+                                style={styles.modalButton}
+                            />
                         </View>
                     </View>
-                </Modal>
-            ) : (
-                datePickerVisible && (
-                    <DateTimePicker
-                        value={birthdayDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={handleDateChange}
-                    />
-                )
-            )}
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -591,6 +575,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
+        padding: moderateSize(16),
         paddingBottom: moderateSize(24),
     },
     row: {

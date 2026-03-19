@@ -1,30 +1,32 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
+import { moderateSize } from '../../styles';
 
 const ActivityScreen = () => {
     const { t } = useTranslation();
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('navigation.message')}
-                showCrudText={false}
-                showHomeIcon={false}
-                showBackIcon={false}
-            />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: t('navigation.message'),
+                showCrudText: false,
+                showHomeIcon: false,
+                showBackIcon: false,
+            }}>
+            <View style={styles.content}>
                 <Text>ActivityScreen</Text>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    content: {
         flex: 1,
+        padding: moderateSize(16),
     },
 });
 

@@ -11,8 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Header from '../../../../components/Header';
-import { commonStyles } from '../../../../theme/commonStyles';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
@@ -59,8 +58,7 @@ const PaymentMethodRow = ({ method, isSelected, onSelect }) => (
         <View
             style={[
                 styles.radioButton,
-                isSelected && styles.radioButtonSelected,
-            ]}>
+                isSelected && styles.radioButtonSelected]}>
             {isSelected && <View style={styles.radioButtonInner} />}
         </View>
     </TouchableOpacity>
@@ -194,15 +192,12 @@ const BookingPaymentScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('payment.payment')} showCrudText={false} />
+        <MasterPageLayout headerType="header" headerProps={{ title: t('payment.payment'), showCrudText: false }}>
             <ScrollView
-                style={commonStyles.main}
+                style={styles.mainContent}
                 contentContainerStyle={[
-                    commonStyles.bookingContentContainer,
                     styles.scrollContent,
-                    { paddingBottom: bottomBarHeight || moderateSize(120) },
-                ]}>
+                    { paddingBottom: bottomBarHeight || moderateSize(120) }]}>
                 <View style={styles.contentContainer}>
                     <TotalAmountDisplay amount={totalAmount} />
 
@@ -233,8 +228,7 @@ const BookingPaymentScreen = () => {
                 <TouchableOpacity
                     style={[
                         styles.payButton,
-                        isSubmitting && styles.payButtonDisabled,
-                    ]}
+                        isSubmitting && styles.payButtonDisabled]}
                     onPress={handlePayNow}
                     disabled={isSubmitting}
                     accessibilityLabel={t('payment.payNow')}
@@ -248,11 +242,15 @@ const BookingPaymentScreen = () => {
                     )}
                 </TouchableOpacity>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.surfaceSoft,

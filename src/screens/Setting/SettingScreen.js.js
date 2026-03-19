@@ -8,13 +8,14 @@ import {
     Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import userImage from '../../assets/images/user-default.png';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import colors from '../../constants/colors';
 import { logout } from '../../services/auth';
 import { getDisplayVersion } from '../../utils/versionUtils';
+import { moderateSize } from '../../styles';
 
 const SettingScreen = () => {
     const navigation = useNavigation();
@@ -53,12 +54,13 @@ const SettingScreen = () => {
     };
 
     return (
-        <>
-            <Header
-                title="Settings"
-                showCrudText={false}
-                showHomeIcon={false}
-            />
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: 'Settings',
+                showCrudText: false,
+                showHomeIcon: false,
+            }}>
             <View style={styles.main}>
                 <View style={styles.usernameContainer}>
                     <Image
@@ -109,26 +111,19 @@ const SettingScreen = () => {
                     <Icon name="chevron-right" size={24} color="gray" />
                 </TouchableOpacity>
             </View>
-        </>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
     main: {
-        flexGrow: 1,
-        padding: 16,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        backgroundColor: 'white',
-        height: '100%',
-        zIndex: 2,
-        marginTop: 120,
+        flex: 1,
+        padding: moderateSize(16),
         alignItems: 'center',
     },
     usernameContainer: {
         alignItems: 'center',
         marginBottom: 10,
-        marginTop: -60,
     },
     userImage: {
         width: 100,

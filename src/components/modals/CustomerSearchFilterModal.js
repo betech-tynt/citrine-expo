@@ -291,70 +291,68 @@ export default function CustomerSearchFilterModal({
                         </View>
                     </View>
                 </KeyboardAvoidingView>
-            </Modal>
 
-            <Modal
-                visible={calendarVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={closeCalendar}>
-                <Pressable
-                    style={styles.calendarBackdrop}
-                    onPress={closeCalendar}
-                />
-                <View style={styles.calendarCardWrap}>
-                    <View style={styles.calendarCard}>
-                        <Text style={styles.calendarTitle}>
-                            {calendarField === 'checkIn'
-                                ? t('citrine.msg000324')
-                                : t('citrine.msg000324')}
-                        </Text>
-                        <Calendar
-                            markedDates={
-                                calendarTempISO
-                                    ? {
-                                          [calendarTempISO]: {
-                                              selected: true,
-                                              selectedColor: colors.primary,
-                                          },
-                                      }
-                                    : {}
-                            }
-                            onDayPress={day =>
-                                setCalendarTempISO(day.dateString)
-                            }
-                            theme={{
-                                selectedDayBackgroundColor: colors.primary,
-                                todayTextColor: colors.primary,
-                                arrowColor: colors.primary,
-                            }}
+                {calendarVisible && (
+                    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 10 }]}>
+                        <Pressable
+                            style={styles.calendarBackdrop}
+                            onPress={closeCalendar}
                         />
-                        <View style={styles.calendarActions}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.calendarBtn,
-                                    styles.calendarBtnSecondary,
-                                ]}
-                                onPress={closeCalendar}
-                                activeOpacity={0.85}>
-                                <Text style={styles.calendarBtnSecondaryText}>
-                                    {t('common.cancel')}
+                        <View style={styles.calendarCardWrap} pointerEvents="box-none">
+                            <View style={styles.calendarCard}>
+                                <Text style={styles.calendarTitle}>
+                                    {calendarField === 'checkIn'
+                                        ? t('citrine.msg000324')
+                                        : t('citrine.msg000324')}
                                 </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.calendarBtn,
-                                    styles.calendarBtnPrimary,
-                                ]}
-                                onPress={confirmCalendar}
-                                activeOpacity={0.85}>
-                                <Text style={styles.calendarBtnPrimaryText}>
-                                    {t('common.ok')}
-                                </Text>
-                            </TouchableOpacity>
+                                <Calendar
+                                    markedDates={
+                                        calendarTempISO
+                                            ? {
+                                                  [calendarTempISO]: {
+                                                      selected: true,
+                                                      selectedColor: colors.primary,
+                                                  },
+                                              }
+                                            : {}
+                                    }
+                                    onDayPress={day =>
+                                        setCalendarTempISO(day.dateString)
+                                    }
+                                    theme={{
+                                        selectedDayBackgroundColor: colors.primary,
+                                        todayTextColor: colors.primary,
+                                        arrowColor: colors.primary,
+                                    }}
+                                />
+                                <View style={styles.calendarActions}>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.calendarBtn,
+                                            styles.calendarBtnSecondary,
+                                        ]}
+                                        onPress={closeCalendar}
+                                        activeOpacity={0.85}>
+                                        <Text style={styles.calendarBtnSecondaryText}>
+                                            {t('common.cancel')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.calendarBtn,
+                                            styles.calendarBtnPrimary,
+                                        ]}
+                                        onPress={confirmCalendar}
+                                        activeOpacity={0.85}>
+                                        <Text style={styles.calendarBtnPrimaryText}>
+                                            {t('common.ok')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
                     </View>
-                </View>
+                )}
             </Modal>
         </>
     );

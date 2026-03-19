@@ -1,26 +1,28 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
+import { Text, View, StyleSheet } from 'react-native';
+import MasterPageLayout from '../../components/MasterPageLayout';
+import { moderateSize } from '../../styles';
 
 const CleaningScreen = () => {
     return (
-        <View style={styles.container}>
-            <Header
-                title="Cleaning"
-                showCrudText={false}
-                showHomeIcon={false}
-            />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: 'Cleaning',
+                showCrudText: false,
+                showHomeIcon: false,
+            }}>
+            <View style={styles.content}>
                 <Text>CleaningScreen</Text>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    content: {
         flex: 1,
+        padding: moderateSize(16),
     },
 });
 

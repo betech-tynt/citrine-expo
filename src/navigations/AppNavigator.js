@@ -1,65 +1,65 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Text, View, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
     NavigationContainer,
     useFocusEffect,
     useNavigationContainerRef,
 } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import LoginScreen from '../screens/Auth/LoginScreen.js';
 import CustomerRegisterScreen from '../screens/Auth/CustomerRegisterScreen.js';
+import LoginScreen from '../screens/Auth/LoginScreen.js';
+import HomeScreen from '../screens/Home/HomeScreen';
 import WorkRegisterMonthScreen from '../screens/Home/WorkRegister/WorkRegisterMonth';
 import WorkRegisterWeekScreen from '../screens/Home/WorkRegister/WorkRegisterWeek';
-import HomeScreen from '../screens/Home/HomeScreen';
 // import SettingScreen from '../screens/Setting/SettingScreen.js';
 import LanguageScreen from '../screens/Setting/Language/LanguageScreen.js';
 // import SearchScreen from '../screens/Search/SearchScreen.js';
-import MessageScreen from '../screens/Message/MessageScreen';
 import SplashScreen from '../components/Splash';
 import { ENV, ensureEnvLoaded } from '../config/env';
-import ProfileScreen from '../screens/Setting/Profile/ProfileScreen.js';
-import ChangePasswordScreen from '../screens/Setting/ChangePassword/ChangePasswordScreen.js';
-import ResetPassword from '../screens/Setting/ResetPassword/ResetPassword.js';
-import SuccessScreen from '../screens/Setting/ResetPassword/SuccessScreen.js';
-import OtpCodeScreen from '../screens/Auth/ForgotPassword/OtpCodeScreen';
-import OtpVerifyScreen from '../screens/Auth/ForgotPassword/OtpVerifyScreen';
-import ForgotPasswordScreen from '../screens/Auth/ForgotPassword/ForgotPasswordScreen';
-import ForgotPasswordErrorScreen from '../screens/Auth/ForgotPassword/ForgotPasswordErrorScreen';
-import ChangeLogs from '../screens/ChangeLogs/ChangeLogs.js';
-import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/index.js';
-import CustomerSearchRoomScreen from '../screens/CustomerSearch/CustomerSearchRoomScreen';
 import {
     ROLE_CUSTOMER,
     ROLE_STAFF,
     ROLE_STAFF_MANAGER,
 } from '../constants/utils';
-import PromotionScreen from '../screens/Home/Promotion/PromotionScreen.js';
-import PaymentScreen from '../screens/Payment/PaymentScreen';
-import PaymentInfoScreen from '../screens/Payment/PaymentInfoScreen';
-import PaymentSettingScreen from '../screens/Payment/PaymentSettingScreen';
 import ActivityScreen from '../screens/Activity/ActivityScreen';
 import CleaningScreen from '../screens/Activity/CleaningScreen';
+import ForgotPasswordErrorScreen from '../screens/Auth/ForgotPassword/ForgotPasswordErrorScreen';
+import ForgotPasswordScreen from '../screens/Auth/ForgotPassword/ForgotPasswordScreen';
+import OtpCodeScreen from '../screens/Auth/ForgotPassword/OtpCodeScreen';
+import OtpVerifyScreen from '../screens/Auth/ForgotPassword/OtpVerifyScreen';
+import ChangeLogs from '../screens/ChangeLogs/ChangeLogs.js';
+import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/index.js';
+import CustomerSearchRoomScreen from '../screens/CustomerSearch/CustomerSearchRoomScreen';
 import SearchRoomScreen from '../screens/Home/Booking/SearchRoom/SearchRoomScreen.js';
+import PromotionScreen from '../screens/Home/Promotion/PromotionScreen.js';
+import MessageScreen from '../screens/Message/MessageScreen';
+import PaymentInfoScreen from '../screens/Payment/PaymentInfoScreen';
+import PaymentScreen from '../screens/Payment/PaymentScreen';
+import PaymentSettingScreen from '../screens/Payment/PaymentSettingScreen';
+import ChangePasswordScreen from '../screens/Setting/ChangePassword/ChangePasswordScreen.js';
+import ProfileScreen from '../screens/Setting/Profile/ProfileScreen.js';
+import ResetPassword from '../screens/Setting/ResetPassword/ResetPassword.js';
+import SuccessScreen from '../screens/Setting/ResetPassword/SuccessScreen.js';
 // import SearchScreen from './../screens/Search/SearchScreen';
+import Account from '../screens/Account/Account.js';
+import ConfirmProfileScreen from '../screens/Auth/SignUp/ConfirmProfile/ConfirmProfileScreen.js';
+import SignUpScreen from '../screens/Auth/SignUp/SignUpScreen.js';
+import CustomerHome from '../screens/CustomerHome/CustomerHome.js';
 import BookingCancelScreen from '../screens/Home/Booking/BookingCancel/index.js';
 import BookingConfirmScreen from '../screens/Home/Booking/BookingConfirm/index.js';
 import BookingHistoryScreen from '../screens/Home/Booking/BookingHistory/BookingHistoryScreen.js';
-import BookingPaymentScreen from '../screens/Home/Booking/BookingPayment/index.js';
 import BookingInfoScreen from '../screens/Home/Booking/BookingInfo/BookingInfoScreen.js';
-import RoomInfoScreen from '../screens/Home/Booking/RoomInfo/RoomInfoScreen.js';
-import SignUpScreen from '../screens/Auth/SignUp/SignUpScreen.js';
-import EditProfileScreen from '../screens/Profile/EditProfileScreen.js';
+import BookingPaymentScreen from '../screens/Home/Booking/BookingPayment/index.js';
 import CustomerBookingScreen from '../screens/Home/Booking/CustomerBooking/index.js';
-import ConfirmProfileScreen from '../screens/Auth/SignUp/ConfirmProfile/ConfirmProfileScreen.js';
-import CustomerHome from '../screens/CustomerHome/CustomerHome.js';
-import Account from '../screens/Account/Account.js';
-import { fetchCustomerHomeData } from '../services/apiCustomerHome';
+import RoomInfoScreen from '../screens/Home/Booking/RoomInfo/RoomInfoScreen.js';
+import EditProfileScreen from '../screens/Profile/EditProfileScreen.js';
 import { setUnauthenticatedHandler } from '../services/api';
+import { fetchCustomerHomeData } from '../services/apiCustomerHome';
 import { moderateSize } from '../styles/moderateSize.js';
 
 // Create navigator instances for stack and bottom tabs.
@@ -391,7 +391,7 @@ const AppNavigatorContent = () => {
             <Stack.Screen
                 name="LanguageScreen"
                 component={LanguageScreen}
-                options={{ headerShown: true, title: t('setting.language') }} // Language
+                options={{ headerShown: false, title: t('setting.language') }} // Language
             />
             <Stack.Screen
                 name="ProfileScreen"

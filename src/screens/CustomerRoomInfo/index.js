@@ -15,13 +15,11 @@ import {
     Image,
     ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { commonStyles } from '../../theme/commonStyles';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import CustomIcon from '../../components/CustomIcon';
 import RoomQuantityModal from '../../components/modals/RoomQuantityModal';
 import { openMapByQuery } from '../../utils/openMap';
@@ -322,35 +320,35 @@ export default function CustomerRoomInfoScreen() {
     // Loading state
     if (loading) {
         return (
-            <View style={styles.container}>
-                <Header
-                    title={headerTitle}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    onLeftIconPress={handleBackPress}
-                />
-                <View style={[commonStyles.main, styles.centerContainer]}>
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: headerTitle,
+                    showCrudText: false,
+                    showHomeIcon: false,
+                    onLeftIconPress: handleBackPress,
+                }}>
+                <View style={[styles.mainContent, styles.centerContainer]}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </View>
+            </MasterPageLayout>
         );
     }
 
     // Error state
     if (error) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('common.error')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    onLeftIconPress={handleBackPress}
-                />
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: headerTitle,
+                    showCrudText: false,
+                    showHomeIcon: false,
+                    onLeftIconPress: handleBackPress,
+                }}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -376,22 +374,21 @@ export default function CustomerRoomInfoScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     // Empty state
     if (!sectionData) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('common.noData')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    onLeftIconPress={handleBackPress}
-                />
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: headerTitle,
+                    showCrudText: false,
+                    showHomeIcon: false,
+                    onLeftIconPress: handleBackPress,
+                }}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -416,25 +413,25 @@ export default function CustomerRoomInfoScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{
+                title: headerTitle,
+                showCrudText: false,
+                showHomeIcon: false,
+                rightIcon: isFav ? 'heart' : 'heart-o',
+                rightIconType: 'FontAwesome',
+                onRightIconPress: () => setIsFav(v => !v),
+                onLeftIconPress: handleBackPress,
+            }}>
             {/* Layout: Link */}
-            <Header
-                title={hotelName}
-                showCrudText={false}
-                showHomeIcon={false}
-                rightIcon={isFav ? 'heart' : 'heart-o'}
-                rightIconType="FontAwesome"
-                onRightIconPress={() => setIsFav(v => !v)}
-                onBackPress={handleBackPress}
-            />
-
             <ScrollView
-                style={commonStyles.main}
+                style={styles.mainContent}
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}>
                 {/* Slide photo */}
@@ -682,7 +679,7 @@ export default function CustomerRoomInfoScreen() {
                 }}
                 disabled={bookingButtonDisabled}
             />
-        </View>
+        </MasterPageLayout>
     );
 }
 
@@ -708,6 +705,10 @@ function HotelGalleryPlaceholder() {
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.primary,
@@ -869,6 +870,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         borderRadius: moderateSize(14),
         overflow: 'hidden',
+        marginHorizontal: moderateSize(2),
         shadowColor: colors.black,
         shadowOpacity: 0.06,
         shadowRadius: 10,

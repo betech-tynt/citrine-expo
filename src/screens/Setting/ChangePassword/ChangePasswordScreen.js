@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { commonStyles } from '../../../theme/commonStyles';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import { changePassword } from '../../../services/auth';
@@ -132,12 +131,14 @@ export default function ChangePasswordScreen() {
 
     return (
         <View style={styles.container}>
-            <Header
-                title={t('changePassword.title')}
-                showCrudText={false}
-                showHomeIcon={false}
-            />
-            <View style={commonStyles.main}>
+            <MasterPageLayout
+                headerType="header"
+                headerProps={{
+                    title: t('changePassword.title'),
+                    showCrudText: false,
+                    showHomeIcon: false,
+                }}>
+                <View style={styles.formContent}>
                 {/* Only show current password field in normal flow (not first-time setup) */}
                 {!isFirstTimeSetup && (
                     <View style={styles.fieldGroup}>
@@ -249,7 +250,8 @@ export default function ChangePasswordScreen() {
                         style={styles.loader}
                     />
                 )}
-            </View>
+                </View>
+            </MasterPageLayout>
 
             {showSuccessMessage && (
                 <View style={styles.successOverlay}>
@@ -276,6 +278,10 @@ export default function ChangePasswordScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    formContent: {
+        flex: 1,
+        padding: moderateSize(16),
     },
     fieldGroup: {
         width: '100%',

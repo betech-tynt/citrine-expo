@@ -11,13 +11,12 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '../../../../components/Header';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
 import { SAMPLE_BOOKING_DATA } from '../../../../constants/utils';
 import { InfoRowPropTypes } from '../../../../utils/propTypes';
-import { commonStyles } from '../../../../theme/commonStyles';
 import { createCustomerBooking } from '../../../../services/apiCustomerBooking';
 import {
     isAuthError,
@@ -380,14 +379,12 @@ const BookingConfirmScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('booking.confirm')} showCrudText={false} />
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{ title: t('booking.confirm'), showCrudText: false }}>
             <ScrollView
-                style={commonStyles.main}
-                contentContainerStyle={[
-                    commonStyles.bookingContentContainer,
-                    styles.scrollContent,
-                ]}>
+                style={styles.mainContent}
+                contentContainerStyle={[styles.scrollContent]}>
                 <View style={styles.contentContainer}>
                     {/* Customer Information Section */}
                     <View style={styles.section}>
@@ -489,16 +486,20 @@ const BookingConfirmScreen = () => {
                     )}
                 </TouchableOpacity>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+    },
     container: {
         flex: 1,
         backgroundColor: colors.surfaceSoft,
     },
     scrollContent: {
+        padding: moderateSize(16),
         paddingBottom: moderateSize(120),
     },
     section: {
@@ -522,6 +523,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
+        marginHorizontal: moderateSize(2),
     },
     infoRow: {
         flexDirection: 'row',

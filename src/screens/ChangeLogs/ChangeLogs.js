@@ -1,11 +1,21 @@
 import { StyleSheet, Text, View, SectionList } from 'react-native';
 import React from 'react';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import { moderateSize } from '../../styles';
 import colors from '../../constants/colors';
 
 const LIST_CHANGE_LOG = [
+    {
+        title: '0.1.51 - 18/03/2026',
+        data: [
+            '[588] Implement call API P0300_Customer_Payment_List_API',
+            '[591] s301_payment_info - Integrate API',
+            '[658] Add search by date range and guests',
+            '[676] Fix keyboard overlaps email input',
+            '[682] Fix bug version 0.1.1',
+            '[696] Fix bug: Change log overlaps section header',
+        ],
+    },
     {
         title: '0.1.5 - 17/03/2026',
         data: [
@@ -145,33 +155,33 @@ const LIST_CHANGE_LOG = [
 
 export default function ChangeLogs() {
     return (
-        <View style={styles.container}>
-            <Header title="Change Logs" showCrudText={false} />
-            <View style={commonStyles.main}>
-                <SectionList
-                    sections={LIST_CHANGE_LOG}
-                    keyExtractor={(item, index) => `${item}-${index}`}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                        <View style={styles.itemRow}>
-                            <View style={styles.bullet} />
-                            <Text style={styles.itemText}>{item}</Text>
+        <MasterPageLayout
+            headerType="header"
+            headerProps={{ title: 'Change Logs', showCrudText: false }}>
+            <SectionList
+                sections={LIST_CHANGE_LOG}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                stickySectionHeadersEnabled={true}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                    <View style={styles.itemRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.itemText}>{item}</Text>
+                    </View>
+                )}
+                renderSectionHeader={({ section }) => (
+                    <View style={styles.sectionCard}>
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.versionDot} />
+                            <Text style={styles.sectionTitle}>
+                                {section.title}
+                            </Text>
                         </View>
-                    )}
-                    renderSectionHeader={({ section }) => (
-                        <View style={styles.sectionCard}>
-                            <View style={styles.sectionHeader}>
-                                <View style={styles.versionDot} />
-                                <Text style={styles.sectionTitle}>
-                                    {section.title}
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-                    contentContainerStyle={styles.listContent}
-                />
-            </View>
-        </View>
+                    </View>
+                )}
+                contentContainerStyle={styles.listContent}
+            />
+        </MasterPageLayout>
     );
 }
 
@@ -180,14 +190,16 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
-        paddingBottom: moderateSize(16),
+        padding: moderateSize(16),
         paddingTop: moderateSize(4),
     },
     sectionCard: {
-        marginTop: moderateSize(10),
+        marginTop: moderateSize(0),
         marginBottom: moderateSize(6),
+        backgroundColor: colors.white,
     },
     sectionHeader: {
+        marginTop: moderateSize(10),
         flexDirection: 'row',
         alignItems: 'center',
         gap: moderateSize(8),

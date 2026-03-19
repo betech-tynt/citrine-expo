@@ -127,9 +127,8 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
+        height: moderateSize(48),
         paddingHorizontal: moderateSize(20),
-        paddingVertical: moderateSize(10),
-        paddingBottom: moderateSize(10),
         backgroundColor: colors.primary,
     },
     backButton: {
@@ -163,7 +162,10 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     rightIconButton: {
-        padding: moderateSize(8),
+        width: moderateSize(40),
+        height: moderateSize(40),
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 

@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { commonStyles } from '../../../theme/commonStyles';
 import { log } from '../../../utils/handleLog';
 import { moderateSize } from '../../../styles';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import colors from '../../../constants/colors';
@@ -79,9 +78,8 @@ export default function ResetPassword() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('resetPassword.title')} showCrudText={false} />
-            <View style={commonStyles.main}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('resetPassword.title'), showCrudText: false }}>
+            <View style={styles.mainContent}>
                 {submitError ? (
                     <Text style={styles.submitError}>{submitError}</Text>
                 ) : null}
@@ -140,11 +138,15 @@ export default function ResetPassword() {
                     />
                 </View>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

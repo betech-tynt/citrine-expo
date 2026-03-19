@@ -13,15 +13,13 @@ import {
     TouchableOpacity,
     ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import SearchBar from '../../components/SearchBar';
 import RoomItem from '../../components/RoomItem';
 import CustomIcon from '../../components/CustomIcon';
 import CustomerSearchFilterModal from '../../components/modals/CustomerSearchFilterModal';
-import { commonStyles } from '../../theme/commonStyles';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerSectionSearch } from '../../services/apiCustomerSectionSearch';
@@ -329,8 +327,7 @@ export default function CustomerSearchRoomScreen() {
                             key={cat.key}
                             style={[
                                 styles.categoryChip,
-                                isActive && styles.categoryChipActive,
-                            ]}
+                                isActive && styles.categoryChipActive]}
                             activeOpacity={0.8}
                             onPress={() => {
                                 setSelectedFilter(cat.key);
@@ -339,8 +336,7 @@ export default function CustomerSearchRoomScreen() {
                             <Text
                                 style={[
                                     styles.categoryChipText,
-                                    isActive && styles.categoryChipTextActive,
-                                ]}>
+                                    isActive && styles.categoryChipTextActive]}>
                                 {cat.label}
                             </Text>
                         </TouchableOpacity>
@@ -393,15 +389,7 @@ export default function CustomerSearchRoomScreen() {
     // Error state - show full screen error only if there's an error and no sections
     if (error && sections.length === 0 && !loading) {
         return (
-            <SafeAreaView
-                edges={['left', 'right', 'bottom']}
-                style={styles.container}>
-                <Header
-                    title={t('customerSearch.title')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    onLeftIconPress={handleBackPress}
-                />
+            <MasterPageLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showCrudText: false, showHomeIcon: false, onLeftIconPress: handleBackPress }}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -427,23 +415,13 @@ export default function CustomerSearchRoomScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('customerSearch.title')}
-                showCrudText={false}
-                showHomeIcon={false}
-                onLeftIconPress={handleBackPress}
-                rightIcon="tune"
-                rightIconType="MaterialIcons"
-                onRightIconPress={openFilter}
-            />
-
-            <View style={[commonStyles.main, styles.content]}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showCrudText: false, showHomeIcon: false, onLeftIconPress: handleBackPress }}>
+            <View style={[styles.mainContent, styles.content]}>
                 <View style={styles.searchContainer}>
                     <SearchBar
                         placeholder={t('customerSearch.searchPlaceholder')}
@@ -485,8 +463,7 @@ export default function CustomerSearchRoomScreen() {
                         renderItem={renderRoomItem}
                         contentContainerStyle={[
                             styles.roomsList,
-                            filteredRooms.length === 0 && styles.emptyList,
-                        ]}
+                            filteredRooms.length === 0 && styles.emptyList]}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={false}
                         onEndReached={loadMore}
@@ -544,11 +521,15 @@ export default function CustomerSearchRoomScreen() {
                 onClose={closeFilter}
                 onApply={applyFilter}
             />
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

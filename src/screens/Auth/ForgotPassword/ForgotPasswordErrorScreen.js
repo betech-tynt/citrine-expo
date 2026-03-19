@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
-import { commonStyles } from '../../../theme/commonStyles';
 import colors from '../../../constants/colors';
 import { getEmailError } from '../../../utils/validators';
+import { moderateSize } from '../../../styles';
 
 export default function ForgotPasswordErrorScreen() {
     const { t } = useTranslation();
@@ -23,9 +23,8 @@ export default function ForgotPasswordErrorScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('otp.title')} showCrudText={false} />
-            <View style={commonStyles.main}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.title'), showCrudText: false }}>
+            <View style={styles.mainContent}>
                 <Text style={styles.errorTitle}>
                     {t('forgotPassword.incorrectInformation')}
                 </Text>
@@ -55,11 +54,15 @@ export default function ForgotPasswordErrorScreen() {
                     />
                 </View>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

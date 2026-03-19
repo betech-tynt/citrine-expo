@@ -14,8 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { commonStyles } from '../../theme/commonStyles';
-import Header from '../../components/Header';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerPaymentList } from '../../services/apiCustomerPaymentList';
@@ -328,64 +327,51 @@ const PaymentScreen = () => {
      */
     const keyExtractor = useCallback(item => item.id.toString(), []);
 
+    // Common header props
+    const headerProps = {
+        title: t('citrine.msg000500'),
+        showCrudText: false,
+        showHomeIcon: false,
+        showBackIcon: false,
+        onRightIconPress: handleSettingsPress,
+        rightIcon: 'gear',
+        rightIconType: 'FontAwesome',
+    };
+
     // Show full-screen loading only on initial load (page 1)
     if (loading && page === 1) {
         return (
-            <View style={styles.container}>
-                <Header
-                    title={t('citrine.msg000500')}
-                    showCrudText={false}
-                    showHomeIcon={false}
-                    showBackIcon={false}
-                    onRightIconPress={handleSettingsPress}
-                    rightIcon="gear"
-                    rightIconType="FontAwesome"
-                />
-                <View style={[commonStyles.main, styles.loadingContainer]}>
+            <MasterPageLayout headerType="header" headerProps={headerProps}>
+                <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
-            </View>
+            </MasterPageLayout>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('citrine.msg000500')}
-                showCrudText={false}
-                showHomeIcon={false}
-                showBackIcon={false}
-                onRightIconPress={handleSettingsPress}
-                rightIcon="gear"
-                rightIconType="FontAwesome"
+        <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <FlatList
+                data={payments}
+                renderItem={renderPaymentCard}
+                keyExtractor={keyExtractor}
+                contentContainerStyle={[
+                    styles.contentContainer,
+                    payments.length === 0 && styles.emptyContainer,
+                ]}
+                ListEmptyComponent={renderEmptyState}
+                ListFooterComponent={renderFooter}
+                showsVerticalScrollIndicator={false}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                onRefresh={handleRefresh}
+                refreshing={loading && page === 1}
             />
-            <View style={commonStyles.main}>
-                <FlatList
-                    data={payments}
-                    renderItem={renderPaymentCard}
-                    keyExtractor={keyExtractor}
-                    contentContainerStyle={[
-                        styles.contentContainer,
-                        payments.length === 0 && styles.emptyContainer,
-                    ]}
-                    ListEmptyComponent={renderEmptyState}
-                    ListFooterComponent={renderFooter}
-                    showsVerticalScrollIndicator={false}
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
-                    onRefresh={handleRefresh}
-                    refreshing={loading && page === 1}
-                />
-            </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
     contentContainer: {
         paddingHorizontal: moderateSize(16),
         paddingVertical: moderateSize(12),
@@ -395,6 +381,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -407,6 +394,7 @@ const styles = StyleSheet.create({
         borderRadius: moderateSize(15),
         padding: moderateSize(15),
         marginBottom: moderateSize(15),
+        marginHorizontal: moderateSize(2),
         shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,

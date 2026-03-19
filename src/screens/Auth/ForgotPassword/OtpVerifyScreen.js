@@ -3,11 +3,10 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Button from '../../../components/Button';
 import OtpInput from '../../../components/OtpInput';
 import colors from '../../../constants/colors';
-import { commonStyles } from '../../../theme/commonStyles';
 import { moderateSize } from '../../../styles';
 import {
     verifyRegisterOtp,
@@ -137,14 +136,8 @@ const OtpVerifyScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('otp.verifyTitle')}
-                showCrudText={false}
-                showHomeIcon={false}
-            />
-
-            <View style={commonStyles.main}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.verifyTitle'), showCrudText: false, showHomeIcon: false }}>
+            <View style={styles.mainContent}>
                 {otpMessage ? (
                     <View style={styles.successBanner}>
                         <Text style={styles.successText}>
@@ -204,7 +197,7 @@ const OtpVerifyScreen = () => {
                     </TouchableOpacity>
                 )}
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
@@ -213,6 +206,10 @@ OtpVerifyScreen.propTypes = {
 };
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.primary,

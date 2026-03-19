@@ -10,8 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Header from '../../../../components/Header';
-import { commonStyles } from '../../../../theme/commonStyles';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import Button from '../../../../components/Button';
@@ -133,16 +132,12 @@ const BookingCancelScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('citrine.msg000300')} showCrudText={false} />
-
+        <MasterPageLayout headerType="header" headerProps={{ title: t('citrine.msg000300'), showCrudText: false }}>
             <ScrollView
-                style={commonStyles.main}
+                style={styles.mainContent}
                 contentContainerStyle={[
-                    commonStyles.bookingContentContainer,
                     styles.scrollContent,
-                    { paddingBottom: bottomBarHeight || moderateSize(120) },
-                ]}
+                    { paddingBottom: bottomBarHeight || moderateSize(120) }]}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
                 {/* Section: Booking details */}
@@ -176,8 +171,7 @@ const BookingCancelScreen = () => {
                         <TextInput
                             style={[
                                 styles.textArea,
-                                showReasonError && styles.textAreaError,
-                            ]}
+                                showReasonError && styles.textAreaError]}
                             placeholder={t('citrine.msg000306')}
                             placeholderTextColor={colors.textSecondary}
                             value={reason}
@@ -224,8 +218,7 @@ const BookingCancelScreen = () => {
                     style={[
                         styles.confirmButton,
                         styles.confirmButtonDanger,
-                        isSubmitting && styles.confirmButtonDisabled,
-                    ]}
+                        isSubmitting && styles.confirmButtonDisabled]}
                 />
                 {isSubmitting && (
                     <View style={styles.loadingOverlay}>
@@ -233,7 +226,7 @@ const BookingCancelScreen = () => {
                     </View>
                 )}
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
@@ -247,6 +240,10 @@ const InfoRow = ({ label, value, isFirst }) => (
 InfoRow.propTypes = InfoRowPropTypes;
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.surfaceSoft,
@@ -267,6 +264,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         borderRadius: moderateSize(10),
         padding: moderateSize(15),
+        marginHorizontal: moderateSize(2),
         shadowColor: colors.black,
         shadowOpacity: 0.05,
         shadowRadius: 4,

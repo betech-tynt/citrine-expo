@@ -2,11 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Button from '../../../components/Button';
 import OtpInput from '../../../components/OtpInput';
 import colors from '../../../constants/colors';
-import { commonStyles } from '../../../theme/commonStyles';
 import { moderateSize } from '../../../styles';
 import {
     sendOtp,
@@ -126,10 +125,8 @@ export default function OtpCodeScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title={t('otp.verifyTitle')} showCrudText={false} />
-
-            <View style={commonStyles.main}>
+        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.verifyTitle'), showCrudText: false }}>
+            <View style={styles.mainContent}>
                 {otpMessage ? (
                     <View style={styles.successBanner}>
                         <Text style={styles.successText}>
@@ -183,11 +180,15 @@ export default function OtpCodeScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
         backgroundColor: colors.primary,

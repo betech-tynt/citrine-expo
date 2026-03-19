@@ -1,12 +1,11 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
-import Header from '../../../../components/Header';
+import MasterPageLayout from '../../../../components/MasterPageLayout';
 import confirmProfileImage from '../../../../assets/images/backgrounds/confirm-profile.jpg';
 import ProfileSummaryCard from '../../../../components/ProfileSummaryCard';
 import Button from '../../../../components/Button';
 import { moderateSize } from '../../../../styles/moderateSize';
 import colors from '../../../../constants/colors';
-import { commonStyles } from '../../../../theme/commonStyles';
 
 export default function ConfirmProfileScreen() {
     const profileData = [
@@ -32,9 +31,8 @@ export default function ConfirmProfileScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header title="Profile" showCrudText={false} />
-            <View style={[commonStyles.main, styles.backgroundColor]}>
+        <MasterPageLayout headerType="header" headerProps={{ title: 'Profile', showCrudText: false }}>
+            <View style={[styles.mainContent, styles.backgroundColor]}>
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}>
@@ -68,11 +66,15 @@ export default function ConfirmProfileScreen() {
                     </View>
                 </ScrollView>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 }
 
 const styles = StyleSheet.create({
+    mainContent: {
+        flex: 1,
+        padding: moderateSize(16),
+    },
     container: {
         flex: 1,
     },

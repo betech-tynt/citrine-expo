@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { commonStyles } from '../../theme/commonStyles';
-import MainHeader from '../../components/MainHeader';
+import MasterPageLayout from '../../components/MasterPageLayout';
 import GridMenu from '../../components/GridMenu';
 import { useTranslation } from 'react-i18next';
 import { moderateSize } from '../../styles';
@@ -42,13 +41,12 @@ const HomeScreen = () => {
     const handlePress = () => {
         navigation.navigate('WorkRegisterMonthScreen');
     };
-    // const { canAccessHR, canViewRegister } = useRolePermission();
 
     return (
-        <View style={styles.container}>
-            <MainHeader username="Snake" notificationCount={3} />
-
-            <ScrollView style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="mainHeader"
+            headerProps={{ username: 'Snake', notificationCount: 3 }}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Customer Role: Booking and Promotion */}
                 {userRole === ROLE_CUSTOMER && (
                     <View style={styles.section}>
@@ -97,13 +95,13 @@ const HomeScreen = () => {
                     </View>
                 )}
             </ScrollView>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    scrollContent: {
+        padding: moderateSize(16),
     },
     section: {
         marginBottom: moderateSize(24),

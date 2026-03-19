@@ -1,16 +1,17 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { commonStyles } from '../../theme/commonStyles';
-import MainHeader from '../../components/MainHeader';
+import MasterPageLayout from '../../components/MasterPageLayout';
+import { moderateSize } from '../../styles';
 import SearchBar from '../../components/SearchBar';
 import CustomIcon from '../../components/CustomIcon';
 import { SAMPLE_ITEMS } from '../../constants/utils';
 
 const SearchScreen = () => {
     return (
-        <View style={styles.container}>
-            <MainHeader username="Snake" notificationCount={3} />
-            <View style={commonStyles.main}>
+        <MasterPageLayout
+            headerType="mainHeader"
+            headerProps={{ username: 'Snake', notificationCount: 3 }}>
+            <View style={styles.content}>
                 <SearchBar placeholder="Search" />
                 <View style={styles.resultsContainer}>
                     {SAMPLE_ITEMS.map((item, index) => (
@@ -22,16 +23,17 @@ const SearchScreen = () => {
                     ))}
                 </View>
             </View>
-        </View>
+        </MasterPageLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    content: {
         flex: 1,
+        padding: moderateSize(16),
     },
     resultsContainer: {
-        marginTop: 16,
+        marginTop: moderateSize(16),
     },
     item: {
         flexDirection: 'row',
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         fontSize: 16,
         lineHeight: 24,
-        color: "#343434",
+        color: '#343434',
     },
     subtitle: {
         fontWeight: '600',

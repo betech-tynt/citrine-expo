@@ -11,10 +11,9 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import Header from '../../../components/Header';
+import MasterPageLayout from '../../../components/MasterPageLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
-import { commonStyles } from '../../../theme/commonStyles';
 import colors from '../../../constants/colors';
 import { sendOtp, TYPE_FORGOT_PASSWORD } from '../../../services/auth';
 import { getEmailError } from '../../../utils/validators';
@@ -84,17 +83,11 @@ export default function ForgotPasswordScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Header
-                title={t('otp.title')}
-                showCrudText={false}
-                onBackPress={handleBackPress}
-            />
-
+        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.title'), showCrudText: false, onBackPress: handleBackPress }}>
             <KeyboardAvoidingView
-                style={[commonStyles.main]}
+                style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: moderateSize(16) }}>
                     {submitError ? (
                         <Text style={styles.errorTitle}>{submitError}</Text>
                     ) : null}
@@ -172,7 +165,7 @@ export default function ForgotPasswordScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </View>
+        </MasterPageLayout>
     );
 }
 
