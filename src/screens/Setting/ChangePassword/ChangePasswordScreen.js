@@ -2,12 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import { changePassword } from '../../../services/auth';
 import { PASSWORD_MAX_LENGTH } from '../../../constants/utils';
-import { isAuthError, handleAuthError } from '../../../utils/authErrorHandler';
+import { isAuthError } from '../../../utils/authErrorHandler';
 import { moderateSize } from '../../../styles';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../../../constants/colors';
@@ -109,7 +109,13 @@ export default function ChangePasswordScreen() {
                 }, 2000);
             } else {
                 // Status = 0 means current password is incorrect
-                setCurrentPasswordError(message);
+                if (message === 'Invalid current password') {
+                    setCurrentPasswordError(
+                        t('changePassword.errors.currentPasswordIncorrect'),
+                    );
+                } else {
+                    setCurrentPasswordError(message);
+                }
             }
         } catch (error) {
             // Handle network errors or other exceptions
@@ -119,7 +125,6 @@ export default function ChangePasswordScreen() {
 
             // Handle auth errors – show session expired alert and redirect to Login
             if (isAuthError(errorMessage)) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -131,42 +136,76 @@ export default function ChangePasswordScreen() {
 
     return (
         <View style={styles.container}>
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: t('changePassword.title'),
-                    showCrudText: false,
-                    showHomeIcon: false,
+                    showHomeIcon: !isFirstTimeSetup,
                 }}>
                 <View style={styles.formContent}>
-                {/* Only show current password field in normal flow (not first-time setup) */}
-                {!isFirstTimeSetup && (
+                    {/* Only show current password field in normal flow (not first-time setup) */}
+                    {!isFirstTimeSetup && (
+                        <View style={styles.fieldGroup}>
+                            <Text style={styles.label}>
+                                {t('changePassword.currentPassword')}
+                            </Text>
+                            <Input
+                                placeholder={t(
+                                    'changePassword.enterCurrentPassword',
+                                )}
+                                secureTextEntry={!showCurrentPassword}
+                                value={currentPassword}
+                                maxLength={PASSWORD_MAX_LENGTH}
+                                onChangeText={text => {
+                                    setCurrentPassword(text);
+                                    if (currentPasswordError)
+                                        setCurrentPasswordError('');
+                                }}
+                                endIcon={
+                                    showCurrentPassword ? 'eye-slash' : 'eye'
+                                }
+                                onEndIconPress={() =>
+                                    setShowCurrentPassword(prev => !prev)
+                                }
+                            />
+                            {currentPasswordError ? (
+                                <Text style={styles.errorText}>
+                                    {currentPasswordError}
+                                </Text>
+                            ) : currentPassword.length >=
+                              PASSWORD_MAX_LENGTH ? (
+                                <Text style={styles.maxLengthHint}>
+                                    {t('changePassword.validation.maxLength', {
+                                        max: PASSWORD_MAX_LENGTH,
+                                    })}
+                                </Text>
+                            ) : null}
+                        </View>
+                    )}
+
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>
-                            {t('changePassword.currentPassword')}
+                            {t('changePassword.newPassword')}
                         </Text>
                         <Input
-                            placeholder={t(
-                                'changePassword.enterCurrentPassword',
-                            )}
-                            secureTextEntry={!showCurrentPassword}
-                            value={currentPassword}
+                            placeholder={t('changePassword.enterNewPassword')}
+                            secureTextEntry={!showNewPassword}
+                            value={newPassword}
                             maxLength={PASSWORD_MAX_LENGTH}
                             onChangeText={text => {
-                                setCurrentPassword(text);
-                                if (currentPasswordError)
-                                    setCurrentPasswordError('');
+                                setNewPassword(text);
+                                if (newPasswordError) setNewPasswordError('');
                             }}
-                            endIcon={showCurrentPassword ? 'eye-slash' : 'eye'}
+                            endIcon={showNewPassword ? 'eye-slash' : 'eye'}
                             onEndIconPress={() =>
-                                setShowCurrentPassword(prev => !prev)
+                                setShowNewPassword(prev => !prev)
                             }
                         />
-                        {currentPasswordError ? (
+                        {newPasswordError ? (
                             <Text style={styles.errorText}>
-                                {currentPasswordError}
+                                {newPasswordError}
                             </Text>
-                        ) : currentPassword.length >= PASSWORD_MAX_LENGTH ? (
+                        ) : newPassword.length >= PASSWORD_MAX_LENGTH ? (
                             <Text style={styles.maxLengthHint}>
                                 {t('changePassword.validation.maxLength', {
                                     max: PASSWORD_MAX_LENGTH,
@@ -174,84 +213,58 @@ export default function ChangePasswordScreen() {
                             </Text>
                         ) : null}
                     </View>
-                )}
 
-                <View style={styles.fieldGroup}>
-                    <Text style={styles.label}>
-                        {t('changePassword.newPassword')}
-                    </Text>
-                    <Input
-                        placeholder={t('changePassword.enterNewPassword')}
-                        secureTextEntry={!showNewPassword}
-                        value={newPassword}
-                        maxLength={PASSWORD_MAX_LENGTH}
-                        onChangeText={text => {
-                            setNewPassword(text);
-                            if (newPasswordError) setNewPasswordError('');
-                        }}
-                        endIcon={showNewPassword ? 'eye-slash' : 'eye'}
-                        onEndIconPress={() => setShowNewPassword(prev => !prev)}
-                    />
-                    {newPasswordError ? (
-                        <Text style={styles.errorText}>{newPasswordError}</Text>
-                    ) : newPassword.length >= PASSWORD_MAX_LENGTH ? (
-                        <Text style={styles.maxLengthHint}>
-                            {t('changePassword.validation.maxLength', {
-                                max: PASSWORD_MAX_LENGTH,
-                            })}
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.label}>
+                            {t('changePassword.confirmPassword')}
                         </Text>
-                    ) : null}
-                </View>
+                        <Input
+                            placeholder={t('changePassword.confirmPassword')}
+                            secureTextEntry={!showConfirmPassword}
+                            value={confirmPassword}
+                            maxLength={PASSWORD_MAX_LENGTH}
+                            onChangeText={text => {
+                                setConfirmPassword(text);
+                                if (confirmPasswordError)
+                                    setConfirmPasswordError('');
+                            }}
+                            endIcon={showConfirmPassword ? 'eye-slash' : 'eye'}
+                            onEndIconPress={() =>
+                                setShowConfirmPassword(prev => !prev)
+                            }
+                        />
+                        {confirmPasswordError ? (
+                            <Text style={styles.errorText}>
+                                {confirmPasswordError}
+                            </Text>
+                        ) : confirmPassword.length >= PASSWORD_MAX_LENGTH ? (
+                            <Text style={styles.maxLengthHint}>
+                                {t('changePassword.validation.maxLength', {
+                                    max: PASSWORD_MAX_LENGTH,
+                                })}
+                            </Text>
+                        ) : null}
+                    </View>
 
-                <View style={styles.fieldGroup}>
-                    <Text style={styles.label}>
-                        {t('changePassword.confirmPassword')}
-                    </Text>
-                    <Input
-                        placeholder={t('changePassword.confirmPassword')}
-                        secureTextEntry={!showConfirmPassword}
-                        value={confirmPassword}
-                        maxLength={PASSWORD_MAX_LENGTH}
-                        onChangeText={text => {
-                            setConfirmPassword(text);
-                            if (confirmPasswordError)
-                                setConfirmPasswordError('');
-                        }}
-                        endIcon={showConfirmPassword ? 'eye-slash' : 'eye'}
-                        onEndIconPress={() =>
-                            setShowConfirmPassword(prev => !prev)
+                    <Button
+                        title={
+                            isLoading
+                                ? t('common.processing')
+                                : t('common.confirm')
                         }
+                        onPress={handleConfirm}
+                        style={styles.confirmButton}
+                        disabled={isLoading}
                     />
-                    {confirmPasswordError ? (
-                        <Text style={styles.errorText}>
-                            {confirmPasswordError}
-                        </Text>
-                    ) : confirmPassword.length >= PASSWORD_MAX_LENGTH ? (
-                        <Text style={styles.maxLengthHint}>
-                            {t('changePassword.validation.maxLength', {
-                                max: PASSWORD_MAX_LENGTH,
-                            })}
-                        </Text>
-                    ) : null}
+                    {isLoading && (
+                        <ActivityIndicator
+                            size="small"
+                            color="#3629B7"
+                            style={styles.loader}
+                        />
+                    )}
                 </View>
-
-                <Button
-                    title={
-                        isLoading ? t('common.processing') : t('common.confirm')
-                    }
-                    onPress={handleConfirm}
-                    style={styles.confirmButton}
-                    disabled={isLoading}
-                />
-                {isLoading && (
-                    <ActivityIndicator
-                        size="small"
-                        color="#3629B7"
-                        style={styles.loader}
-                    />
-                )}
-                </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
 
             {showSuccessMessage && (
                 <View style={styles.successOverlay}>

@@ -138,7 +138,28 @@
         "cancelSuccess": "Booking cancelled successfully",
         "cancelFailed": "Failed to cancel booking",
         "confirmCancelMessage": "Are you sure you want to cancel this booking?",
-        "roomUnavailable": "Room unavailable for selected dates"},
+        "roomUnavailable": "Room unavailable for selected dates",
+        "promotionTitle": "Select promotion",
+        "promotionSelect": "Select promotion",
+        "promotionNone": "Not applied",
+        "bookingNoteTitle": "Booking note",
+        "bookingNotePlaceholder": "Enter additional notes such as special requests or check-in time..."
+    },
+    "promotion": {
+        "screenTitle": "Select promotion",
+        "select": "Select promotion",
+        "none": "Not applied",
+        "welcome2025": "Welcome 2025",
+        "welcome2025Desc": "15% discount for new customers",
+        "discount30": "30% off",
+        "discount30Desc": "Save more when you buy more",
+        "vip": "VIP Premium",
+        "vipDesc": "Direct discount for VIP customers",
+        "stay7": "Stay 7 Nights",
+        "stay7Desc": "25% off for stays of 7 nights or more",
+        "tet": "Tet 2025",
+        "tetDesc": "Tet promotion from 01/02 - 10/03"
+    },
     "otp": {
         "title": "Forgot Password",
         "verifyTitle": "OTP Verify",
@@ -177,7 +198,8 @@
     },
         "validate": {
             "required": "{{field}} is required",
-            "invalidEmail": "Please enter a valid email address."
+            "invalidEmail": "Please enter a valid email address.",
+            "emailRequired": "Please enter your email address."
         },
     "customerRoomInfo": {
         "sections": {
@@ -189,7 +211,8 @@
             "seeMore": "See more",
             "seeLess": "See less",
             "openMap": "Open map",
-            "chooseRoom": "Choose room"
+            "chooseRoom": "Choose room",
+            "viewAllReviews": "View all reviews"
         },
         "amenities": {
             "freeWifi": "Free Wi‑Fi",
@@ -208,12 +231,43 @@
         },
         "demoDescription": "Located in a prime area, {{hotelName}} offers a luxurious and high-class stay. With modern architecture and professional service..."
     },
+    "sectionRating": {
+        "title": "Hotel Reviews",
+        "allRatingsPublic": "All ratings are public",
+        "basedOn": "Based on {{count}} reviews",
+        "noReviews": "No reviews yet",
+        "breakdown": {
+            "roomQuality": "Room quality",
+            "cleanliness": "Cleanliness",
+            "service": "Service",
+            "value": "Value for money",
+            "location": "Location"
+        },
+        "criteria": {
+            "room": "Room",
+            "cleanliness": "Cleanliness",
+            "service": "Service",
+            "price": "Price",
+            "location": "Location"
+        },
+        "filter": {
+            "all": "All",
+            "mostHelpful": "Most helpful"
+        },
+        "helpful": "{{count}} people found this helpful",
+        "roomType": {
+            "deluxe": "Deluxe Room",
+            "standard": "Standard Room",
+            "suite": "Suite Room"
+        }
+    },
     "customerSearch": {
         "title": "Search",
         "searchPlaceholder": "Hanoi",
         "perNight": "night",
         "inputAddress": "Enter an address to search",
-        "noResults": "No rooms found",
+        "noResults":"No rooms found",
+        "noPopularRooms": "No popular rooms available",
         "resultsFound": "Found {{count}} results",
         "filters": {
             "all": "All",
@@ -1017,28 +1071,28 @@
         "msg000697": "",
         "msg000698": "",
         "msg000699": "",
-        "msg000700": "",
-        "msg000701": "",
-        "msg000702": "",
-        "msg000703": "",
-        "msg000704": "",
-        "msg000705": "",
-        "msg000706": "",
-        "msg000707": "",
-        "msg000708": "",
-        "msg000709": "",
-        "msg000710": "",
-        "msg000711": "",
-        "msg000712": "",
-        "msg000713": "",
-        "msg000714": "",
-        "msg000715": "",
-        "msg000716": "",
-        "msg000717": "",
-        "msg000718": "",
-        "msg000719": "",
-        "msg000720": "",
-        "msg000721": "",
+        "msg000700": "Service Rating",
+        "msg000701": "Room Quality",
+        "msg000702": "Cleanliness",
+        "msg000703": "Service",
+        "msg000704": "Value for Money",
+        "msg000705": "Location",
+        "msg000706": "Overall Experience",
+        "msg000707": "Overall Rating",
+        "msg000708": "Your Comment",
+        "msg000709": "Share details about your experience...",
+        "msg000710": "Submit Review",
+        "msg000711": "Not rated",
+        "msg000712": "Very Bad",
+        "msg000713": "Bad",
+        "msg000714": "Average",
+        "msg000715": "Good",
+        "msg000716": "Excellent",
+        "msg000717": "Share your experience to help us improve our service",
+        "msg000718": "Thank you for your review! Your review has been saved successfully.",
+        "msg000719": "Please rate all {{count}} remaining criteria",
+        "msg000720": "Unable to submit review",
+        "msg000721": "Failed to update review",
         "msg000722": "",
         "msg000723": "",
         "msg000724": "",

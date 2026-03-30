@@ -6,7 +6,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 
@@ -14,7 +14,7 @@ export default function BlankTabScreen() {
     const { t } = useTranslation(); // eslint-disable-line no-unused-vars
 
     return (
-        <MasterPageLayout
+        <ParentLayout
             headerType="mainHeader"
             headerProps={{
                 username: 'User',
@@ -39,13 +39,14 @@ export default function BlankTabScreen() {
                     </Text>
                 </View>
             </ScrollView>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 }
 
 const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
+        // backgroundColor: colors.backgroundSecondary,
     },
     scrollContent: {
         padding: moderateSize(16),

@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import SignUpIllustration from '../../components/SignUpIllustration';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
+import KeyboardAwareWrapper from '../../components/KeyboardAwareWrapper';
 
 const CustomerRegisterScreen = () => {
     const navigation = useNavigation();
@@ -34,8 +35,13 @@ const CustomerRegisterScreen = () => {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('auth.signUp'), showCrudText: false, onBackPress: handleBackPress }}>
-            <View style={[styles.mainContent, styles.card]}>
+        <ChildrenLayout
+            headerType="header"
+            headerProps={{
+                title: t('auth.signUp'),
+                onBackPress: handleBackPress,
+            }}>
+            <KeyboardAwareWrapper style={[styles.mainContent, styles.card]}>
                 <Text style={styles.title}>{t('auth.welcomeToUs')}</Text>
                 <Text style={styles.subtitle}>{t('auth.signUpPrompt')}</Text>
 
@@ -79,12 +85,15 @@ const CustomerRegisterScreen = () => {
                     <Text style={styles.bottomText}>
                         {t('auth.haveAccount')}{' '}
                     </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <Text style={styles.bottomLink}>{t('auth.signIn')}</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Login')}>
+                        <Text style={styles.bottomLink}>
+                            {t('auth.signIn')}
+                        </Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-        </MasterPageLayout>
+            </KeyboardAwareWrapper>
+        </ChildrenLayout>
     );
 };
 

@@ -1,25 +1,22 @@
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import { moderateSize } from '../../styles';
 
 const ActivityScreen = () => {
     const { t } = useTranslation();
 
     return (
-        <MasterPageLayout
+        <ParentLayout
             headerType="header"
             headerProps={{
                 title: t('navigation.message'),
-                showCrudText: false,
-                showHomeIcon: false,
-                showBackIcon: false,
             }}>
             <View style={styles.content}>
                 <Text>ActivityScreen</Text>
             </View>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import SearchBar from '../../components/SearchBar';
 import { moderateSize } from '../../styles/moderateSize';
 import CustomIcon from '../../components/CustomIcon';
@@ -25,7 +25,7 @@ import { Image } from 'react-native';
 import { fetchCustomerHomeData } from '../../services/apiCustomerHome';
 import StarRating from '../../components/StarRating';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { isAuthError, handleAuthError } from '../../utils/authErrorHandler';
+import { isAuthError } from '../../utils/authErrorHandler';
 
 const MOCK_PROMOTIONS = [
     {
@@ -273,7 +273,6 @@ const CustomerHome = () => {
             // Double check token before calling API
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -330,7 +329,6 @@ const CustomerHome = () => {
 
             // Check if error is authentication related
             if (isAuthError(errorMessage)) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -369,9 +367,6 @@ const CustomerHome = () => {
     // Common header props
     const headerProps = {
         title: t('customerHome.welcome'),
-        showBackIcon: false,
-        showCrudText: false,
-        showHomeIcon: false,
         rightIconName: 'bell-o',
         onRightIconPress: () => {},
     };
@@ -379,21 +374,21 @@ const CustomerHome = () => {
     // Loading state
     if (loading) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     // Error state
     if (error && lodgings.length === 0) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -419,14 +414,14 @@ const CustomerHome = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     // Empty state
     if (!loading && lodgings.length === 0 && promotions.length === 0) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -451,12 +446,12 @@ const CustomerHome = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ParentLayout headerType="header" headerProps={headerProps}>
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
@@ -538,7 +533,7 @@ const CustomerHome = () => {
                     />
                 </View>
             </ScrollView>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 
@@ -715,7 +710,7 @@ const styles = StyleSheet.create({
     },
 
     promotionListContent: {
-        paddingHorizontal: moderateSize(20),
+        // paddingHorizontal: moderateSize(20),
     },
 
     promotionCardBase: {

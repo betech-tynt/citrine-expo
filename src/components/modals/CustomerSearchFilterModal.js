@@ -27,11 +27,19 @@ const toISO = d => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
+const todayISO = toISO(new Date());
+
 const safeParseISODate = iso => {
     if (!iso || typeof iso !== 'string') return null;
-    // Force local midnight to avoid timezone shifting
     const d = new Date(`${iso}T00:00:00`);
     return Number.isNaN(d.getTime()) ? null : d;
+};
+
+const addDaysISO = (iso, days) => {
+    const base = iso ? new Date(iso) : new Date();
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    return toISO(d);
 };
 
 /**
@@ -52,18 +60,27 @@ export default function CustomerSearchFilterModal({
     const { t } = useTranslation();
 
     const [calendarVisible, setCalendarVisible] = useState(false);
-    const [calendarField, setCalendarField] = useState('checkIn'); // 'checkIn' | 'checkOut'
+    const [calendarField, setCalendarField] = useState('checkIn');
     const [calendarTempISO, setCalendarTempISO] = useState('');
+
+    // Default adults to 1 if invalid
+    React.useEffect(() => {
+        if ((filter.adults ?? 0) <= 0) {
+            onChange({ ...filter, adults: 1 });
+        }
+    }, [filter.adults, filter, onChange]);
 
     const openCalendar = useCallback(
         field => {
-            const todayISO = toISO(new Date());
-            const initialISO =
+            let initialISO =
                 (field === 'checkIn'
                     ? filter.checkInISO
-                    : filter.checkOutISO) || todayISO;
-            setCalendarField(field);
+                    : filter.checkOutISO) || toISO(new Date());
+            if (initialISO < todayISO) {
+                initialISO = todayISO;
+            }
             setCalendarTempISO(initialISO);
+            setCalendarField(field);
             setCalendarVisible(true);
         },
         [filter.checkInISO, filter.checkOutISO],
@@ -74,7 +91,10 @@ export default function CustomerSearchFilterModal({
     }, []);
 
     const confirmCalendar = useCallback(() => {
-        if (!calendarTempISO) {
+        if (!calendarTempISO || calendarTempISO < todayISO) {
+            alert(
+                'Cannot select past dates for check-in/out. Please choose today or future date.',
+            );
             closeCalendar();
             return;
         }
@@ -82,13 +102,14 @@ export default function CustomerSearchFilterModal({
         const next = { ...filter };
         if (calendarField === 'checkIn') {
             next.checkInISO = calendarTempISO;
-            if (next.checkOutISO) {
-                const start = safeParseISODate(next.checkInISO);
-                const end = safeParseISODate(next.checkOutISO);
-                if (start && end && end < start) {
-                    // If user moved start after end, clear end to avoid invalid range
-                    next.checkOutISO = '';
-                }
+            // Auto-set check-out = check-in +1 if empty or invalid
+            const start = safeParseISODate(next.checkInISO);
+            if (
+                !next.checkOutISO ||
+                !start ||
+                safeParseISODate(next.checkOutISO) <= start
+            ) {
+                next.checkOutISO = addDaysISO(calendarTempISO, 1);
             }
         } else {
             next.checkOutISO = calendarTempISO;
@@ -96,7 +117,6 @@ export default function CustomerSearchFilterModal({
                 const start = safeParseISODate(next.checkInISO);
                 const end = safeParseISODate(next.checkOutISO);
                 if (start && end && end < start) {
-                    // Swap to keep a valid range
                     const tmp = next.checkInISO;
                     next.checkInISO = next.checkOutISO;
                     next.checkOutISO = tmp;
@@ -106,12 +126,15 @@ export default function CustomerSearchFilterModal({
 
         onChange(next);
         closeCalendar();
-    }, [calendarTempISO, calendarField, closeCalendar, filter, onChange]);
+    }, [calendarTempISO, calendarField, filter, onChange, closeCalendar]);
 
     const dec = useCallback(
         key => {
             const current = Number(filter?.[key] ?? 0);
-            const nextVal = Math.max(0, current - 1);
+            const nextVal =
+                key === 'adults'
+                    ? Math.max(1, current - 1)
+                    : Math.max(0, current - 1);
             onChange({ ...filter, [key]: nextVal });
         },
         [filter, onChange],
@@ -224,7 +247,7 @@ export default function CustomerSearchFilterModal({
                                         </Text>
                                     </TouchableOpacity>
                                     <Text style={styles.counterValue}>
-                                        {filter.adults ?? 0}
+                                        {filter.adults ?? 1}
                                     </Text>
                                     <TouchableOpacity
                                         onPress={() => inc('adults')}
@@ -293,25 +316,37 @@ export default function CustomerSearchFilterModal({
                 </KeyboardAvoidingView>
 
                 {calendarVisible && (
-                    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 10 }]}>
+                    <View
+                        style={[
+                            StyleSheet.absoluteFill,
+                            { zIndex: 1000, elevation: 10 },
+                        ]}>
                         <Pressable
                             style={styles.calendarBackdrop}
                             onPress={closeCalendar}
                         />
-                        <View style={styles.calendarCardWrap} pointerEvents="box-none">
+                        <View
+                            style={styles.calendarCardWrap}
+                            pointerEvents="box-none">
                             <View style={styles.calendarCard}>
                                 <Text style={styles.calendarTitle}>
-                                    {calendarField === 'checkIn'
-                                        ? t('citrine.msg000324')
-                                        : t('citrine.msg000324')}
+                                    {
+                                        calendarField === 'checkIn'
+                                            ? t('citrine.msg000324')
+                                            : t(
+                                                  'citrine.msg000328',
+                                              ) /* Check-out label */
+                                    }
                                 </Text>
                                 <Calendar
+                                    minDate={todayISO}
                                     markedDates={
                                         calendarTempISO
                                             ? {
                                                   [calendarTempISO]: {
                                                       selected: true,
-                                                      selectedColor: colors.primary,
+                                                      selectedColor:
+                                                          colors.primary,
                                                   },
                                               }
                                             : {}
@@ -320,7 +355,8 @@ export default function CustomerSearchFilterModal({
                                         setCalendarTempISO(day.dateString)
                                     }
                                     theme={{
-                                        selectedDayBackgroundColor: colors.primary,
+                                        selectedDayBackgroundColor:
+                                            colors.primary,
                                         todayTextColor: colors.primary,
                                         arrowColor: colors.primary,
                                     }}
@@ -333,7 +369,10 @@ export default function CustomerSearchFilterModal({
                                         ]}
                                         onPress={closeCalendar}
                                         activeOpacity={0.85}>
-                                        <Text style={styles.calendarBtnSecondaryText}>
+                                        <Text
+                                            style={
+                                                styles.calendarBtnSecondaryText
+                                            }>
                                             {t('common.cancel')}
                                         </Text>
                                     </TouchableOpacity>
@@ -344,7 +383,10 @@ export default function CustomerSearchFilterModal({
                                         ]}
                                         onPress={confirmCalendar}
                                         activeOpacity={0.85}>
-                                        <Text style={styles.calendarBtnPrimaryText}>
+                                        <Text
+                                            style={
+                                                styles.calendarBtnPrimaryText
+                                            }>
                                             {t('common.ok')}
                                         </Text>
                                     </TouchableOpacity>
@@ -489,7 +531,6 @@ const styles = StyleSheet.create({
         color: colors.white,
     },
 
-    // Calendar modal
     calendarBackdrop: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.45)',

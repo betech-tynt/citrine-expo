@@ -1,65 +1,60 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Text, View, StyleSheet } from 'react-native';
 import {
     NavigationContainer,
     useFocusEffect,
     useNavigationContainerRef,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import CustomerRegisterScreen from '../screens/Auth/CustomerRegisterScreen.js';
 import LoginScreen from '../screens/Auth/LoginScreen.js';
+import CustomerRegisterScreen from '../screens/Auth/CustomerRegisterScreen.js';
 import HomeScreen from '../screens/Home/HomeScreen';
-import WorkRegisterMonthScreen from '../screens/Home/WorkRegister/WorkRegisterMonth';
-import WorkRegisterWeekScreen from '../screens/Home/WorkRegister/WorkRegisterWeek';
-// import SettingScreen from '../screens/Setting/SettingScreen.js';
 import LanguageScreen from '../screens/Setting/Language/LanguageScreen.js';
-// import SearchScreen from '../screens/Search/SearchScreen.js';
+import MessageScreen from '../screens/Message/MessageScreen';
 import SplashScreen from '../components/Splash';
 import { ENV, ensureEnvLoaded } from '../config/env';
+import ChangePasswordScreen from '../screens/Setting/ChangePassword/ChangePasswordScreen.js';
+import ResetPassword from '../screens/Setting/ResetPassword/ResetPassword.js';
+import SuccessScreen from '../screens/Setting/ResetPassword/SuccessScreen.js';
+import OtpCodeScreen from '../screens/Auth/ForgotPassword/OtpCodeScreen';
+import OtpVerifyScreen from '../screens/Auth/ForgotPassword/OtpVerifyScreen';
+import ForgotPasswordScreen from '../screens/Auth/ForgotPassword/ForgotPasswordScreen';
+import ChangeLogs from '../screens/ChangeLogs/ChangeLogs.js';
+import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/index.js';
+import CustomerSearchRoomScreen from '../screens/CustomerSearch/CustomerSearchRoomScreen';
 import {
     ROLE_CUSTOMER,
     ROLE_STAFF,
     ROLE_STAFF_MANAGER,
 } from '../constants/utils';
+import PromotionScreen from '../screens/Home/Promotion/PromotionScreen.js';
+import PaymentScreen from '../screens/Payment/PaymentScreen';
+import PaymentInfoScreen from '../screens/Payment/PaymentInfoScreen';
+import PaymentSettingScreen from '../screens/Payment/PaymentSettingScreen';
 import ActivityScreen from '../screens/Activity/ActivityScreen';
 import CleaningScreen from '../screens/Activity/CleaningScreen';
-import ForgotPasswordErrorScreen from '../screens/Auth/ForgotPassword/ForgotPasswordErrorScreen';
-import ForgotPasswordScreen from '../screens/Auth/ForgotPassword/ForgotPasswordScreen';
-import OtpCodeScreen from '../screens/Auth/ForgotPassword/OtpCodeScreen';
-import OtpVerifyScreen from '../screens/Auth/ForgotPassword/OtpVerifyScreen';
-import ChangeLogs from '../screens/ChangeLogs/ChangeLogs.js';
-import CustomerRoomInfoScreen from '../screens/CustomerRoomInfo/index.js';
-import CustomerSearchRoomScreen from '../screens/CustomerSearch/CustomerSearchRoomScreen';
-import SearchRoomScreen from '../screens/Home/Booking/SearchRoom/SearchRoomScreen.js';
-import PromotionScreen from '../screens/Home/Promotion/PromotionScreen.js';
-import MessageScreen from '../screens/Message/MessageScreen';
-import PaymentInfoScreen from '../screens/Payment/PaymentInfoScreen';
-import PaymentScreen from '../screens/Payment/PaymentScreen';
-import PaymentSettingScreen from '../screens/Payment/PaymentSettingScreen';
-import ChangePasswordScreen from '../screens/Setting/ChangePassword/ChangePasswordScreen.js';
-import ProfileScreen from '../screens/Setting/Profile/ProfileScreen.js';
-import ResetPassword from '../screens/Setting/ResetPassword/ResetPassword.js';
-import SuccessScreen from '../screens/Setting/ResetPassword/SuccessScreen.js';
-// import SearchScreen from './../screens/Search/SearchScreen';
-import Account from '../screens/Account/Account.js';
-import ConfirmProfileScreen from '../screens/Auth/SignUp/ConfirmProfile/ConfirmProfileScreen.js';
-import SignUpScreen from '../screens/Auth/SignUp/SignUpScreen.js';
-import CustomerHome from '../screens/CustomerHome/CustomerHome.js';
 import BookingCancelScreen from '../screens/Home/Booking/BookingCancel/index.js';
 import BookingConfirmScreen from '../screens/Home/Booking/BookingConfirm/index.js';
 import BookingHistoryScreen from '../screens/Home/Booking/BookingHistory/BookingHistoryScreen.js';
-import BookingInfoScreen from '../screens/Home/Booking/BookingInfo/BookingInfoScreen.js';
 import BookingPaymentScreen from '../screens/Home/Booking/BookingPayment/index.js';
-import CustomerBookingScreen from '../screens/Home/Booking/CustomerBooking/index.js';
-import RoomInfoScreen from '../screens/Home/Booking/RoomInfo/RoomInfoScreen.js';
+import BookingInfoScreen from '../screens/Home/Booking/BookingInfo/BookingInfoScreen.js';
+import SectionRatingScreen from '../screens/SectionRating';
+import SignUpScreen from '../screens/Auth/SignUp/SignUpScreen.js';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen.js';
-import { setUnauthenticatedHandler } from '../services/api';
+import CustomerBookingScreen from '../screens/Home/Booking/CustomerBooking/index.js';
+import CustomerHome from '../screens/CustomerHome/CustomerHome.js';
+import Account from '../screens/Account/Account.js';
 import { fetchCustomerHomeData } from '../services/apiCustomerHome';
+import { setUnauthenticatedHandler } from '../services/api';
+import {
+    canHandleSessionExpired,
+    markSessionExpiredHandled,
+} from '../utils/SessionManager';
 import { moderateSize } from '../styles/moderateSize.js';
 
 // Create navigator instances for stack and bottom tabs.
@@ -323,6 +318,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: moderateSize(10),
         paddingVertical: moderateSize(4),
         minWidth: moderateSize(60),
+        alignItems: 'center',
+        justifyContent: 'center',
         shadowColor: '#3629B7',
         shadowOffset: {
             width: 0,
@@ -338,6 +335,9 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(10),
         fontWeight: '600',
         letterSpacing: 0.1,
+        flexShrink: 1,
+        flexWrap: 'wrap',
+        numberOfLines: 2,
     },
 });
 
@@ -381,10 +381,6 @@ const AppNavigatorContent = () => {
                 name="ForgotPassword"
                 component={ForgotPasswordScreen}
             />
-            <Stack.Screen
-                name="ForgotPasswordError"
-                component={ForgotPasswordErrorScreen}
-            />
             <Stack.Screen name="CheckOTPScreen" component={OtpCodeScreen} />
             <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
             <Stack.Screen name="Main" component={TabNavigator} />
@@ -394,28 +390,11 @@ const AppNavigatorContent = () => {
                 options={{ headerShown: false, title: t('setting.language') }} // Language
             />
             <Stack.Screen
-                name="ProfileScreen"
-                component={ProfileScreen}
-                options={{ title: 'Profile' }}
-            />
-            <Stack.Screen
-                name="ConfirmProfile"
-                component={ConfirmProfileScreen}
-            />
-            <Stack.Screen
                 name="ChangePasswordScreen"
                 component={ChangePasswordScreen}
                 options={{ title: 'ChangePassword' }}
             />
             <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen
-                name="WorkRegisterMonthScreen"
-                component={WorkRegisterMonthScreen}
-            />
-            <Stack.Screen
-                name="WorkRegisterWeekScreen"
-                component={WorkRegisterWeekScreen}
-            />
             <Stack.Screen name="ResetPassword" component={ResetPassword} />
             <Stack.Screen
                 name="SuccessScreen"
@@ -449,11 +428,6 @@ const AppNavigatorContent = () => {
             <Stack.Screen name="ActivityScreen" component={ActivityScreen} />
             <Stack.Screen name="CleaningScreen" component={CleaningScreen} />
             <Stack.Screen
-                name="SearchRoomScreen"
-                component={SearchRoomScreen}
-            />
-            <Stack.Screen name="RoomInfoScreen" component={RoomInfoScreen} />
-            <Stack.Screen
                 name="BookingCancelScreen"
                 component={BookingCancelScreen}
             />
@@ -474,6 +448,10 @@ const AppNavigatorContent = () => {
                 component={BookingPaymentScreen}
             />
             <Stack.Screen name="CustomerHome" component={CustomerHome} />
+            <Stack.Screen
+                name="SectionRatingScreen"
+                component={SectionRatingScreen}
+            />
         </Stack.Navigator>
     );
 };
@@ -482,6 +460,7 @@ const AppNavigator = () => {
     const navigationRef = useNavigationContainerRef();
     const { t } = useTranslation();
     const isHandlingUnauth = useRef(false);
+    const isLoggingOut = useRef(false);
 
     // Register a global unauthenticated handler that shows an alert and
     // navigates to Login only after the user confirms.
@@ -491,12 +470,29 @@ const AppNavigator = () => {
                 return;
             }
 
+            if (isLoggingOut.current) {
+                return;
+            }
+
+            if (!canHandleSessionExpired()) {
+                return;
+            }
+
+            const currentRoute = navigationRef.getCurrentRoute()?.name;
+
+            if (currentRoute === 'Login') {
+                return;
+            }
+
+            markSessionExpiredHandled();
             isHandlingUnauth.current = true;
 
             Alert.alert(t('common.error'), t('auth.sessionExpired'), [
                 {
                     text: t('common.ok'),
                     onPress: async () => {
+                        isLoggingOut.current = true;
+
                         try {
                             await AsyncStorage.multiRemove([
                                 'token',
@@ -505,19 +501,23 @@ const AppNavigator = () => {
                                 'customerUser',
                                 'isLogin',
                             ]);
-                        } catch (e) {
-                            console.error(
-                                '[AppNavigator] Failed to clear auth state:',
-                                e,
-                            );
-                        } finally {
                             if (navigationRef?.isReady()) {
                                 navigationRef.reset({
                                     index: 0,
                                     routes: [{ name: 'Login' }],
                                 });
                             }
-                            isHandlingUnauth.current = false;
+                        } catch (e) {
+                            console.error(
+                                '[AppNavigator] Failed to clear auth state:',
+                                e,
+                            );
+                        } finally {
+                            // Reset flags safely after navigation
+                            setTimeout(() => {
+                                isHandlingUnauth.current = false;
+                                isLoggingOut.current = false;
+                            }, 2000);
                         }
                     },
                 },

@@ -11,7 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../../components/ChildrenLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
@@ -192,7 +192,7 @@ const BookingPaymentScreen = () => {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('payment.payment'), showCrudText: false }}>
+        <ChildrenLayout headerType="header" headerProps={{ title: t('payment.payment') }}>
             <ScrollView
                 style={styles.mainContent}
                 contentContainerStyle={[
@@ -242,7 +242,7 @@ const BookingPaymentScreen = () => {
                     )}
                 </TouchableOpacity>
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

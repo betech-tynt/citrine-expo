@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import { moderateSize } from '../../../styles';
 
 const LanguageScreen = () => {
     const { t, i18n } = useTranslation();
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
-    const handleLanguagePress = (lang) => {
+    const handleLanguagePress = lang => {
         i18n.changeLanguage(lang);
         setSelectedLanguage(lang);
     };
@@ -21,28 +21,27 @@ const LanguageScreen = () => {
     ];
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
             headerProps={{
                 title: t('setting.language'),
-                showCrudText: false,
-                showHomeIcon: false,
             }}>
             <View style={styles.content}>
-                {languages.map((language) => (
+                {languages.map(language => (
                     <TouchableOpacity
                         key={language.value}
                         onPress={() => handleLanguagePress(language.value)}
-                        style={styles.languageOption}
-                    >
-                        <Text style={styles.languageText}>{language.label}</Text>
+                        style={styles.languageOption}>
+                        <Text style={styles.languageText}>
+                            {language.label}
+                        </Text>
                         {selectedLanguage === language.value && (
                             <Icon name="check" size={24} color="#3572EF" />
                         )}
                     </TouchableOpacity>
                 ))}
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

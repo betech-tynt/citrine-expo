@@ -5,13 +5,12 @@ import {
     View,
     Image,
     TouchableOpacity,
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
 } from 'react-native';
+import KeyboardAwareWrapper from '../../../components/KeyboardAwareWrapper';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import colors from '../../../constants/colors';
@@ -19,6 +18,7 @@ import { sendOtp, TYPE_FORGOT_PASSWORD } from '../../../services/auth';
 import { getEmailError } from '../../../utils/validators';
 import { moderateSize } from '../../../styles';
 import ForgotPasswordImage from '../../../assets/images/backgrounds/forgot-password.jpg';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function ForgotPasswordScreen() {
     const navigation = useNavigation();
@@ -83,11 +83,21 @@ export default function ForgotPasswordScreen() {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.title'), showCrudText: false, onBackPress: handleBackPress }}>
-            <KeyboardAvoidingView
+        <ChildrenLayout
+            headerType="header"
+            headerProps={{
+                title: t('otp.title'),
+                showHomeIcon: false,
+                onBackPress: handleBackPress,
+            }}>
+            <KeyboardAwareWrapper
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: moderateSize(16) }}>
+                <ScrollView
+                    contentContainerStyle={{
+                        flexGrow: 1,
+                        padding: moderateSize(16),
+                    }}>
                     {submitError ? (
                         <Text style={styles.errorTitle}>{submitError}</Text>
                     ) : null}
@@ -130,7 +140,11 @@ export default function ForgotPasswordScreen() {
                             autoCapitalize="none"
                         />
                         {hasSubmitted && errors.email ? (
-                            <Text style={styles.errorText}>{errors.email}</Text>
+                            <Text style={styles.errorText}>
+                                {!email.trim()
+                                    ? t('validate.emailRequired')
+                                    : errors.email}
+                            </Text>
                         ) : null}
 
                         <Text style={styles.hintText}>
@@ -164,8 +178,8 @@ export default function ForgotPasswordScreen() {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
-            </KeyboardAvoidingView>
-        </MasterPageLayout>
+            </KeyboardAwareWrapper>
+        </ChildrenLayout>
     );
 }
 

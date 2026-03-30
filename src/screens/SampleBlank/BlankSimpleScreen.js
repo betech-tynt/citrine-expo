@@ -7,7 +7,7 @@ import React from 'react';
 import { StyleSheet, ScrollView, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 
@@ -16,11 +16,10 @@ export default function BlankSimpleScreen() {
     const navigation = useNavigation(); // eslint-disable-line no-unused-vars
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
             headerProps={{
                 title: 'Screen Title',
-                showCrudText: false,
             }}>
             <ScrollView
                 style={styles.scrollView}
@@ -32,13 +31,14 @@ export default function BlankSimpleScreen() {
                     This is a simple screen template.
                 </Text>
             </ScrollView>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 
 const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
+        // backgroundColor: colors.backgroundSecondary,
     },
     scrollContent: {
         padding: moderateSize(16),

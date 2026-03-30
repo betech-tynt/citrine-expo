@@ -1,8 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from '../config/i18n';
+import { log } from '../utils/handleLog';
 import apiClient, { notifyUnauthenticated } from './api';
 import { getDeviceInfo, getUniqueId } from './deviceInfo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { log } from '../utils/handleLog';
-import i18n from '../config/i18n';
 
 // OTP Types (shared across OTP flows)
 export const TYPE_REGISTER = 1;
@@ -576,10 +576,10 @@ export async function getUserData() {
                         }
                     }
                     configs {
-                        language
-                        timezone
-                        notification_enabled
-                        dark_mode
+                        settings {
+                            key
+                            value
+                        }
                     }
                 }
             }

@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, {
+    useMemo,
+    useState,
+    useEffect,
+    useCallback,
+    useRef,
+} from 'react';
 import {
     StyleSheet,
     Text,
@@ -6,12 +12,13 @@ import {
     ScrollView,
     TouchableOpacity,
     Alert,
+    TextInput,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { ActivityIndicator } from 'react-native';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../../components/ChildrenLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
@@ -26,7 +33,16 @@ import {
 import { InfoRowPropTypes } from '../../../../utils/propTypes';
 import PropTypes from 'prop-types';
 import { fetchCustomerBookingInfo } from '../../../../services/apiBookingInfo';
+import {
+    fetchBookingRatingCriteria,
+    fetchBookingReview,
+    submitBookingRating,
+} from '../../../../services/apiBookingRating';
 import { formatDate } from '../../../../utils/formatDate';
+import KeyboardAwareWrapper from '../../../../components/KeyboardAwareWrapper';
+import RatingCriteriaCard from './RatingCriteriaCard';
+import CustomIcon from '../../../../components/CustomIcon';
+import { log } from '../../../../utils/handleLog';
 
 // Use shared utility function for status styles
 const getStatusStyle = status => getBookingStatusStyle(status, styles);
@@ -338,35 +354,208 @@ const BookingInfoScreen = () => {
         Alert.alert(t('citrine.msg000319'));
     };
 
+    const [ratingCriteria, setRatingCriteria] = useState([]);
+
+    const [criteriaLoading, setCriteriaLoading] = useState(false);
+    // Fetch rating criteria (Review type) from P0402
+    useEffect(() => {
+        // IF not checkout, skip fetching criteria and don't show rating section at all
+        if (normalizedStatus !== BOOKING_STATUS.CHECKED_OUT) return;
+        let isMounted = true;
+        setCriteriaLoading(true);
+        fetchBookingRatingCriteria()
+            .then(data => {
+                // When API call succeeds, use returned criteria list (may be empty)
+                if (isMounted) setRatingCriteria(data);
+            })
+            .catch(() => {
+                console.warn('Failed to fetch rating criteria, using defaults');
+                if (isMounted) setRatingCriteria([]);
+            })
+            .finally(() => {
+                if (isMounted) setCriteriaLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [normalizedStatus]);
+
+    const [ratingValues, setRatingValues] = useState({});
+    const [apiAverageRating, setApiAverageRating] = useState(null);
+    const [reviewId, setReviewId] = useState(null);
+    const [comment, setComment] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const successTimerRef = useRef(null);
+
+    useEffect(() => {
+        return () => clearTimeout(successTimerRef.current);
+    }, []);
+
+    // Live average across all criteria — only active when user edits stars (apiAverageRating is null)
+    const calculatedRating = useMemo(() => {
+        if (ratingCriteria.length === 0) return 0;
+        const filledCriteria = ratingCriteria.filter(
+            criterion => (ratingValues[criterion.id] || 0) > 0,
+        );
+        if (filledCriteria.length === 0) return 0;
+        const totalScore = ratingCriteria.reduce(
+            (sum, criterion) => sum + (ratingValues[criterion.id] || 0),
+            0,
+        );
+        // Divide by total criteria (not filled) to penalize unanswered ones
+        return totalScore / ratingCriteria.length;
+    }, [ratingValues, ratingCriteria]);
+
+    const overallRating = apiAverageRating ?? calculatedRating;
+
+    // Apply review data returned from P0401 into form state.
+    // withCriteria=true: also set ratingCriteria fallback (used on initial load only).
+    const loadReview = useCallback((review, withCriteria = false) => {
+        if (!review) return;
+        const ratings = review.ratings || [];
+
+        if (withCriteria && ratings.length > 0) {
+            const criteriaFromReview = ratings.map(rating => ({
+                id: rating.id,
+                name: rating.name,
+                icon: rating.icon,
+            }));
+            setRatingCriteria(prev =>
+                prev.length > 0 ? prev : criteriaFromReview,
+            );
+        }
+
+        const ratingValueMap = {};
+        ratings.forEach(rating => {
+            ratingValueMap[rating.id] = rating.value;
+        });
+
+        setReviewId(review.id ?? null);
+        setRatingValues(ratingValueMap);
+        setApiAverageRating(review.average_rating ?? null);
+        setComment(review.comment || '');
+    }, []);
+
+    // Fetch existing review for this booking (P0401) and pre-fill form if found
+    useEffect(() => {
+        if (!bookingId || normalizedStatus !== BOOKING_STATUS.CHECKED_OUT) {
+            return;
+        }
+        let isMounted = true;
+        fetchBookingReview(bookingId)
+            .then(review => {
+                if (isMounted) loadReview(review, true);
+            })
+            .catch(() => {
+                // No existing review or network error
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [bookingId, normalizedStatus, loadReview]);
+
+    const getRatingLabel = useCallback(
+        value => {
+            const labels = [
+                '',
+                t('citrine.msg000712'),
+                t('citrine.msg000713'),
+                t('citrine.msg000714'),
+                t('citrine.msg000715'),
+                t('citrine.msg000716'),
+            ];
+            return labels[Math.round(value)] || t('citrine.msg000711');
+        },
+        [t],
+    );
+
+    const handleStarPress = useCallback((criteriaId, starValue) => {
+        setApiAverageRating(null);
+        setRatingValues(prev => ({ ...prev, [criteriaId]: starValue }));
+    }, []);
+
+    const handleSubmitRating = async () => {
+        // Count unfilled criteria
+        const unfilled = ratingCriteria.filter(
+            criterion => (ratingValues[criterion.id] || 0) === 0,
+        ).length;
+        if (unfilled > 0) {
+            Alert.alert(t('citrine.msg000719', { count: unfilled }));
+            return;
+        }
+
+        // Disable button + show spinner
+        setIsSubmitting(true);
+        try {
+            const ratingsPayload = ratingCriteria.map(criterion => ({
+                criteria_id: criterion.id,
+                value: ratingValues[criterion.id],
+            }));
+            const { status: submitStatus, message: submitMessage } =
+                await submitBookingRating(
+                    bookingId,
+                    ratingsPayload,
+                    comment,
+                    reviewId,
+                );
+
+            // Refresh review data from P0401 so UI reflects latest saved state
+            fetchBookingReview(bookingId)
+                .then(review => loadReview(review))
+                .catch(() => {});
+
+            clearTimeout(successTimerRef.current);
+            log('[info][submitBookingRating]:', submitStatus, submitMessage);
+            setShowSuccess(true);
+            successTimerRef.current = setTimeout(
+                () => setShowSuccess(false),
+                5000,
+            );
+        } catch (e) {
+            log('[error][submitBookingRating]:', e.message);
+            Alert.alert(
+                t(reviewId ? 'citrine.msg000721' : 'citrine.msg000720'),
+            );
+        } finally {
+            // Restore button icon (spinner → check)
+            setIsSubmitting(false);
+        }
+    };
+
     const headerProps = {
         title: t('citrine.msg000312'),
-        showCrudText: false,
     };
 
     if (loading && !bookingInfo) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     if (error && !bookingInfo) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ChildrenLayout headerType="header" headerProps={headerProps}>
+            <KeyboardAwareWrapper
+                scrollEnabled={true}
+                style={styles.keyboardWrapper}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled">
                     <View style={styles.contentContainer}>
                         {/* Section: Booking Status */}
                         <View style={styles.section}>
@@ -475,9 +664,154 @@ const BookingInfoScreen = () => {
                                 />
                             </View>
                         </View>
+
+                        {/* Section: Service Rating — only visible for completed bookings */}
+                        {normalizedStatus === BOOKING_STATUS.CHECKED_OUT && (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>
+                                    {t('citrine.msg000700')}
+                                </Text>
+
+                                {/* Alert info box */}
+                                <View style={styles.alertBox}>
+                                    <Icon
+                                        name="info-circle"
+                                        size={moderateSize(18)}
+                                        color="#1565C0"
+                                        style={styles.alertBoxIcon}
+                                    />
+                                    <Text style={styles.alertBoxText}>
+                                        {t('citrine.msg000717')}
+                                    </Text>
+                                </View>
+
+                                {/* Overall rating display */}
+                                <View style={styles.overallRatingBox}>
+                                    <Text style={styles.overallRatingValue}>
+                                        {overallRating > 0
+                                            ? overallRating.toFixed(1)
+                                            : '0.0'}
+                                    </Text>
+                                    <Text style={styles.overallRatingLabel}>
+                                        {t('citrine.msg000707')}
+                                    </Text>
+                                </View>
+
+                                {/* Rating criteria */}
+                                {criteriaLoading ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color={colors.primary}
+                                        style={styles.criteriaLoader}
+                                    />
+                                ) : (
+                                    ratingCriteria.map(criteria => {
+                                        const currentValue =
+                                            ratingValues[criteria.id] || 0;
+                                        const valueLabel =
+                                            currentValue > 0
+                                                ? `${currentValue}/5 - ${getRatingLabel(
+                                                      currentValue,
+                                                  )}`
+                                                : t('citrine.msg000711');
+                                        return (
+                                            <RatingCriteriaCard
+                                                key={criteria.id}
+                                                name={criteria.name}
+                                                icon={criteria.icon}
+                                                value={currentValue}
+                                                onPress={star =>
+                                                    handleStarPress(
+                                                        criteria.id,
+                                                        star,
+                                                    )
+                                                }
+                                                readonly={isSubmitting}
+                                                valueLabel={valueLabel}
+                                            />
+                                        );
+                                    })
+                                )}
+
+                                {/* Comment section */}
+                                <View style={styles.commentSection}>
+                                    <View style={styles.commentLabelRow}>
+                                        <Icon
+                                            name="comment"
+                                            size={moderateSize(16)}
+                                            color={colors.textPrimary}
+                                            style={styles.commentLabelIcon}
+                                        />
+                                        <Text style={styles.commentLabel}>
+                                            {t('citrine.msg000708')}
+                                        </Text>
+                                    </View>
+                                    <TextInput
+                                        style={styles.commentBox}
+                                        placeholder={t('citrine.msg000709')}
+                                        placeholderTextColor={
+                                            colors.textSecondary
+                                        }
+                                        multiline
+                                        maxLength={1000}
+                                        value={comment}
+                                        onChangeText={setComment}
+                                        textAlignVertical="top"
+                                        editable={!isSubmitting}
+                                    />
+                                    <Text style={styles.charCount}>
+                                        {comment.length}/1000
+                                    </Text>
+                                </View>
+
+                                {/* Success message — shown after submit */}
+                                {showSuccess && (
+                                    <View style={styles.successMessage}>
+                                        <Icon
+                                            name="check-circle"
+                                            size={moderateSize(14)}
+                                            color={colors.white}
+                                            style={styles.successMessageIcon}
+                                        />
+                                        <Text style={styles.successMessageText}>
+                                            {t('citrine.msg000718')}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {/* Submit button */}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.submitRatingButton,
+                                        isSubmitting &&
+                                            styles.submitRatingButtonDisabled,
+                                    ]}
+                                    onPress={handleSubmitRating}
+                                    activeOpacity={0.8}
+                                    disabled={isSubmitting}>
+                                    {isSubmitting ? (
+                                        <ActivityIndicator
+                                            size="small"
+                                            color={colors.textWhite}
+                                            style={styles.submitRatingIcon}
+                                        />
+                                    ) : (
+                                        <CustomIcon
+                                            name="check"
+                                            size={moderateSize(14)}
+                                            color={colors.textWhite}
+                                            style={styles.submitRatingIcon}
+                                        />
+                                    )}
+                                    <Text style={styles.submitRatingText}>
+                                        {t('citrine.msg000710')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
                 </ScrollView>
-            </MasterPageLayout>
+            </KeyboardAwareWrapper>
             <View style={styles.bottomBar}>
                 <TouchableOpacity
                     style={[
@@ -514,15 +848,11 @@ const BookingInfoScreen = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ChildrenLayout>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.surfaceSoft,
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -538,6 +868,9 @@ const styles = StyleSheet.create({
         fontSize: moderateSize(16),
         color: colors.danger,
         textAlign: 'center',
+    },
+    keyboardWrapper: {
+        flex: 1,
     },
     scrollContent: {
         padding: moderateSize(16),
@@ -709,6 +1042,160 @@ const styles = StyleSheet.create({
     },
     buttonTextDisabled: {
         color: colors.disabledText,
+    },
+    alertBox: {
+        backgroundColor: '#E3F2FD',
+        borderLeftWidth: 4,
+        borderLeftColor: '#2196F3',
+        borderRadius: moderateSize(6),
+        padding: moderateSize(12),
+        paddingHorizontal: moderateSize(15),
+        marginBottom: moderateSize(15),
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    alertBoxIcon: {
+        marginRight: moderateSize(8),
+        marginTop: moderateSize(2),
+    },
+    alertBoxText: {
+        fontSize: moderateSize(14),
+        color: '#1565C0',
+        flex: 1,
+    },
+    successMessage: {
+        backgroundColor: '#FFB800',
+        borderRadius: moderateSize(8),
+        padding: moderateSize(12),
+        paddingHorizontal: moderateSize(15),
+        marginBottom: moderateSize(15),
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    successMessageIcon: {
+        marginRight: moderateSize(8),
+    },
+    successMessageText: {
+        fontSize: moderateSize(14),
+        color: colors.textWhite,
+        flex: 1,
+    },
+    overallRatingBox: {
+        backgroundColor: '#FFB800',
+        borderRadius: moderateSize(12),
+        padding: moderateSize(20),
+        marginBottom: moderateSize(12),
+        alignItems: 'center',
+    },
+    overallRatingValue: {
+        fontSize: moderateSize(48),
+        fontWeight: 'bold',
+        color: colors.textWhite,
+    },
+    overallRatingLabel: {
+        fontSize: moderateSize(14),
+        color: colors.textWhite,
+        marginTop: moderateSize(5),
+    },
+    ratingCriteria: {
+        backgroundColor: colors.surface,
+        borderRadius: moderateSize(10),
+        padding: moderateSize(15),
+        marginBottom: moderateSize(12),
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    criteriaHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: moderateSize(10),
+        marginBottom: moderateSize(10),
+    },
+    criteriaLabel: {
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+        color: colors.textPrimary,
+    },
+    starRow: {
+        flexDirection: 'row',
+        gap: moderateSize(8),
+        marginTop: moderateSize(10),
+    },
+    starCell: {
+        width: moderateSize(32),
+        height: moderateSize(32),
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    ratingValueText: {
+        fontSize: moderateSize(14),
+        color: colors.textSecondary,
+        marginTop: moderateSize(5),
+    },
+    commentSection: {
+        backgroundColor: colors.surface,
+        borderRadius: moderateSize(10),
+        padding: moderateSize(15),
+        marginBottom: moderateSize(12),
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    commentLabelRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: moderateSize(8),
+        marginBottom: moderateSize(10),
+    },
+    commentLabelIcon: {},
+    commentLabel: {
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+        color: colors.textPrimary,
+    },
+    commentBox: {
+        borderWidth: 1,
+        borderColor: colors.borderColorGrey02,
+        borderRadius: moderateSize(8),
+        padding: moderateSize(12),
+        fontSize: moderateSize(14),
+        color: colors.textPrimary,
+        minHeight: moderateSize(100),
+    },
+    charCount: {
+        textAlign: 'right',
+        fontSize: moderateSize(12),
+        color: colors.textSecondary,
+        marginTop: moderateSize(5),
+    },
+    criteriaLoader: {
+        marginVertical: moderateSize(20),
+    },
+    submitRatingButton: {
+        backgroundColor: colors.primary,
+        borderRadius: moderateSize(10),
+        padding: moderateSize(14),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: moderateSize(15),
+    },
+    submitRatingButtonDisabled: {
+        backgroundColor: colors.disabledBg,
+        opacity: 0.6,
+    },
+    submitRatingIcon: {
+        marginRight: moderateSize(8),
+    },
+    submitRatingText: {
+        fontSize: moderateSize(16),
+        fontWeight: 'bold',
+        color: colors.textWhite,
     },
 });
 

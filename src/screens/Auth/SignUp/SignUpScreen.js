@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import React, { useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import { useTranslation } from 'react-i18next';
+import KeyboardAwareWrapper from '../../../components/KeyboardAwareWrapper';
 import { AppInput } from '../../../components/Input';
 import Button from '../../../components/Button';
 import { moderateSize } from '../../../styles';
@@ -32,10 +33,10 @@ export default function SignUpScreen() {
         currentEmail => {
             const trimmed = (currentEmail ?? email).trim();
             if (!trimmed) {
-                return t('validate.required', { field: 'Email' });
+                return t('validate.emailRequired');
             }
             if (!EMAIL_REGEX.test(trimmed)) {
-                return t('auth.invalidEmail');
+                return t('validate.invalidEmail');
             }
             return '';
         },
@@ -102,8 +103,13 @@ export default function SignUpScreen() {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('auth.signUp'), showCrudText: false, showHomeIcon: false }}>
-            <View style={styles.mainContent}>
+        <ChildrenLayout
+            headerType="header"
+            headerProps={{
+                title: t('auth.signUp'),
+                showHomeIcon: false,
+            }}>
+            <KeyboardAwareWrapper style={styles.mainContent}>
                 <Text style={styles.signUpPrompt}>
                     {t('auth.signUpPrompt')}
                 </Text>
@@ -144,8 +150,8 @@ export default function SignUpScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-        </MasterPageLayout>
+            </KeyboardAwareWrapper>
+        </ChildrenLayout>
     );
 }
 

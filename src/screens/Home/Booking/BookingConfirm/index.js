@@ -11,7 +11,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../../components/ChildrenLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { formatCurrency } from '../../../../utils/formatCurrency';
@@ -20,7 +20,6 @@ import { InfoRowPropTypes } from '../../../../utils/propTypes';
 import { createCustomerBooking } from '../../../../services/apiCustomerBooking';
 import {
     isAuthError,
-    handleAuthError,
 } from '../../../../utils/authErrorHandler';
 
 /**
@@ -318,7 +317,6 @@ const BookingConfirmScreen = () => {
             const errorMsgLower = errorMessage.toLowerCase();
 
             if (isAuthError(errorMessage)) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -379,9 +377,9 @@ const BookingConfirmScreen = () => {
     };
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
-            headerProps={{ title: t('booking.confirm'), showCrudText: false }}>
+            headerProps={{ title: t('booking.confirm') }}>
             <ScrollView
                 style={styles.mainContent}
                 contentContainerStyle={[styles.scrollContent]}>
@@ -486,7 +484,7 @@ const BookingConfirmScreen = () => {
                     )}
                 </TouchableOpacity>
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

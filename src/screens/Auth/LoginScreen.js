@@ -13,15 +13,16 @@ import {
 } from 'react-native';
 import LoginImage from '../../assets/images/backgrounds/locker-login.png';
 import Button from '../../components/Button';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import Input from '../../components/Input';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import KeyboardAwareWrapper from '../../components/KeyboardAwareWrapper';
 import { ENV } from '../../config/env';
 import colors from '../../constants/colors';
 import { login } from '../../services/auth';
 import { getUniqueId } from '../../services/deviceInfo';
 import { moderateSize } from '../../styles';
+import { resetSessionExpired } from '../../utils/SessionManager';
 import { getDisplayVersion } from '../../utils/versionUtils';
-
 const LAST_USERNAME_KEY = 'lastUsername';
 const LAST_PASSWORD_KEY = 'lastPassword';
 
@@ -43,6 +44,7 @@ const LoginScreen = () => {
             await AsyncStorage.setItem('isLogin', 'true');
             await AsyncStorage.setItem(LAST_USERNAME_KEY, loginUsername);
             await AsyncStorage.setItem(LAST_PASSWORD_KEY, loginPassword);
+            resetSessionExpired();
             navigation.replace('Main');
         } catch {
             Alert.alert(t('auth.loginFailed'), t('auth.enterBothFields'));
@@ -94,15 +96,14 @@ const LoginScreen = () => {
     };
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
             headerProps={{
                 title: t('auth.signIn'),
-                showCrudText: false,
                 showHomeIcon: false,
                 showBackIcon: false,
             }}>
-            <View style={styles.mainContent}>
+            <KeyboardAwareWrapper style={styles.mainContent}>
                 <Text style={styles.welcomeBack}>{t('auth.welcomeBack')}</Text>
                 <Text style={styles.signInPrompt}>
                     {t('auth.signInPrompt')}
@@ -229,8 +230,8 @@ const LoginScreen = () => {
                     </>
                 )}
                 <Text style={styles.versionText}>{displayVersion}</Text>
-            </View>
-        </MasterPageLayout>
+            </KeyboardAwareWrapper>
+        </ChildrenLayout>
     );
 };
 

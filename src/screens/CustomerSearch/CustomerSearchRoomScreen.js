@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import SearchBar from '../../components/SearchBar';
 import RoomItem from '../../components/RoomItem';
 import CustomIcon from '../../components/CustomIcon';
@@ -61,7 +61,7 @@ export default function CustomerSearchRoomScreen() {
         return {
             checkInISO: toISO(today),
             checkOutISO: toISO(tomorrow),
-            adults: 2,
+            adults: 1,
             children: 0,
         };
     }, []);
@@ -116,6 +116,38 @@ export default function CustomerSearchRoomScreen() {
             isLoadMore = false,
             filter = null,
         ) => {
+            // Prevent past dates for search
+            const today = new Date();
+            const toISO = d => {
+                const yyyy = `${d.getFullYear()}`;
+                const mm = `${d.getMonth() + 1}`.padStart(2, '0');
+                const dd = `${d.getDate()}`.padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            };
+            const todayISO = toISO(today);
+            if (filter?.checkInISO && filter.checkInISO < todayISO) {
+                const errMsg =
+                    'Cannot search with past check-in date. Please select today or future date.';
+                setError(errMsg);
+                if (!isLoadMore) {
+                    setLoading(false);
+                } else {
+                    setIsLoadingMore(false);
+                }
+                return;
+            }
+            if (filter?.checkOutISO && filter.checkOutISO < todayISO) {
+                const errMsg =
+                    'Cannot search with past check-out date. Please select today or future date.';
+                setError(errMsg);
+                if (!isLoadMore) {
+                    setLoading(false);
+                } else {
+                    setIsLoadingMore(false);
+                }
+                return;
+            }
+
             try {
                 if (!isLoadMore) {
                     setLoading(true);
@@ -221,6 +253,7 @@ export default function CustomerSearchRoomScreen() {
     const handleSearch = useCallback(() => {
         resetPagination();
         const typeId = getTypeIdFromFilter(selectedFilter);
+        // Always load data - empty searchQuery shows initial/popular rooms
         performSearch(searchQuery, typeId, 1, false, appliedFilter);
     }, [
         resetPagination,
@@ -231,10 +264,44 @@ export default function CustomerSearchRoomScreen() {
         appliedFilter,
     ]);
 
+    // Auto-reload popular data when searchQuery changes to empty (user clears search)
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            const typeId = getTypeIdFromFilter(selectedFilter);
+            resetPagination();
+            performSearch('', typeId, 1, false, appliedFilter);
+        }
+    }, [
+        searchQuery,
+        selectedFilter,
+        appliedFilter,
+        getTypeIdFromFilter,
+        performSearch,
+        resetPagination,
+    ]);
+
+    // Initial load: Load popular data on mount with empty query
+    useEffect(() => {
+        // Load initial popular data only once on mount
+        if (!hasTriggeredInitialSearch.current) {
+            hasTriggeredInitialSearch.current = true;
+            const timer = setTimeout(() => {
+                resetPagination();
+                performSearch(
+                    '',
+                    null /* all types */,
+                    1,
+                    false,
+                    DEFAULT_FILTER,
+                );
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [performSearch, resetPagination, DEFAULT_FILTER]);
+
     // Auto-trigger search if initial query is provided from route params (only once on mount)
     useEffect(() => {
-        if (initialSearchQuery.trim() && !hasTriggeredInitialSearch.current) {
-            hasTriggeredInitialSearch.current = true;
+        if (initialSearchQuery.trim()) {
             const timer = setTimeout(() => {
                 resetPagination();
                 const typeId = getTypeIdFromFilter(selectedFilter);
@@ -389,7 +456,7 @@ export default function CustomerSearchRoomScreen() {
     // Error state - show full screen error only if there's an error and no sections
     if (error && sections.length === 0 && !loading) {
         return (
-            <MasterPageLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showCrudText: false, showHomeIcon: false, onLeftIconPress: handleBackPress }}>
+            <ChildrenLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showHomeIcon: false, onBackPress: handleBackPress }}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -415,12 +482,12 @@ export default function CustomerSearchRoomScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showCrudText: false, showHomeIcon: false, onLeftIconPress: handleBackPress }}>
+        <ChildrenLayout headerType="header" headerProps={{ title: t('customerSearch.title'), showHomeIcon: false, onBackPress: handleBackPress, rightIcon: 'tune', rightIconType: 'MaterialIcons', onRightIconPress: openFilter }}>
             <View style={[styles.mainContent, styles.content]}>
                 <View style={styles.searchContainer}>
                     <SearchBar
@@ -497,7 +564,7 @@ export default function CustomerSearchRoomScreen() {
                                 <View style={styles.emptyContainer}>
                                     <CustomIcon
                                         type="FontAwesome5"
-                                        name="map-marker-alt"
+                                        name="search"
                                         size={60}
                                         color={colors.textSecondary}
                                     />
@@ -521,7 +588,7 @@ export default function CustomerSearchRoomScreen() {
                 onClose={closeFilter}
                 onApply={applyFilter}
             />
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 

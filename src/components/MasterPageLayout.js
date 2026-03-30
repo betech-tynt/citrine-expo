@@ -7,83 +7,86 @@ import colors from '../constants/colors';
 import { moderateSize } from '../styles/moderateSize';
 import { CONTENT_BORDER_RADIUS } from '../constants/layout';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Use EXACTLY the same offset formula as commonStyles.js so the layout
-// matches screens that have NOT been migrated yet.
-//
-// commonStyles.js:
-//   STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44
-//   MAIN_CONTENT_OFFSET = STATUS_BAR_HEIGHT + moderateSize(60)
-//   BOOKING_CONTENT_OFFSET = STATUS_BAR_HEIGHT + moderateSize(90)
-// ─────────────────────────────────────────────────────────────────────────────
 const STATUS_BAR_HEIGHT =
     Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
 
 const MAIN_CONTENT_OFFSET = STATUS_BAR_HEIGHT + moderateSize(60);
 const BOOKING_CONTENT_OFFSET = STATUS_BAR_HEIGHT + moderateSize(90);
 
+// Header preset
+const HEADER_PRESETS = {
+    parent: {
+        showBackIcon: false,
+        showHomeIcon: false,
+        showCrudText: false,
+    },
+    child: {
+        showBackIcon: true,
+        showHomeIcon: true,
+        showCrudText: false,
+    },
+};
+
+// Content area style map
+const CONTENT_STYLE_MAP = {
+    main: {
+        flex: 1,
+        borderTopLeftRadius: CONTENT_BORDER_RADIUS,
+        borderTopRightRadius: CONTENT_BORDER_RADIUS,
+        backgroundColor: colors.white,
+        zIndex: 2,
+        marginTop: MAIN_CONTENT_OFFSET,
+        overflow: 'hidden',
+    },
+    booking: {
+        flex: 1,
+        borderTopLeftRadius: CONTENT_BORDER_RADIUS,
+        borderTopRightRadius: CONTENT_BORDER_RADIUS,
+        backgroundColor: colors.surfaceSoft,
+        zIndex: 2,
+        marginTop: BOOKING_CONTENT_OFFSET,
+        padding: 0,
+    },
+    flat: {
+        flex: 1,
+        zIndex: 2,
+        marginTop: MAIN_CONTENT_OFFSET,
+        padding: 0,
+    },
+};
+
+// Header component map
+const HEADER_COMPONENTS = {
+    header: Header,
+    mainHeader: MainHeader,
+    none: null,
+};
+
 /**
  * MasterPageLayout — reusable layout wrapper for all screens.
- *
- * Provides a consistent structure:
- *   • Header (Header / MainHeader / none)
- *   • Content area with rounded top corners, proper marginTop offset
- *   • Safe area handling synchronised across Android & iOS
+ * @note Prefer using ParentLayout / ChildrenLayout instead of this directly.
  */
 const MasterPageLayout = ({
     headerType = 'header',
+    headerPreset = 'child',
     headerProps = {},
     contentStyle = 'main',
     backgroundColor,
     contentContainerStyle,
     children,
 }) => {
-    // Render the appropriate header
-    const renderHeader = () => {
-        switch (headerType) {
-            case 'header':
-                return <Header {...headerProps} />;
-            case 'mainHeader':
-                return <MainHeader {...headerProps} />;
-            case 'none':
-            default:
-                return null;
-        }
+    // Merge: preset defaults -> headerProps overrides
+    const mergedHeaderProps = {
+        ...(HEADER_PRESETS[headerPreset] || HEADER_PRESETS.child),
+        ...headerProps,
     };
 
-    // Resolve content area style based on contentStyle prop
-    const resolveContentStyle = () => {
-        switch (contentStyle) {
-            case 'booking':
-                return {
-                    flex: 1,
-                    borderTopLeftRadius: CONTENT_BORDER_RADIUS,
-                    borderTopRightRadius: CONTENT_BORDER_RADIUS,
-                    backgroundColor: colors.surfaceSoft,
-                    zIndex: 2,
-                    marginTop: BOOKING_CONTENT_OFFSET,
-                    padding: 0,
-                };
-            case 'flat':
-                return {
-                    flex: 1,
-                    zIndex: 2,
-                    marginTop: MAIN_CONTENT_OFFSET,
-                    padding: 0,
-                };
-            case 'main':
-            default:
-                return {
-                    flex: 1,
-                    borderTopLeftRadius: CONTENT_BORDER_RADIUS,
-                    borderTopRightRadius: CONTENT_BORDER_RADIUS,
-                    backgroundColor: colors.white,
-                    zIndex: 2,
-                    marginTop: MAIN_CONTENT_OFFSET,
-                    overflow: 'hidden',
-                };
-        }
-    };
+    // Resolve header component
+    const HeaderComponent = HEADER_COMPONENTS[headerType] ?? null;
+
+    // Resolve content style
+    const resolvedContentStyle =
+        CONTENT_STYLE_MAP[contentStyle] || CONTENT_STYLE_MAP.main;
 
     return (
         <View
@@ -91,8 +94,8 @@ const MasterPageLayout = ({
                 styles.container,
                 backgroundColor ? { backgroundColor } : null,
             ]}>
-            {renderHeader()}
-            <View style={[resolveContentStyle(), contentContainerStyle]}>
+            {HeaderComponent && <HeaderComponent {...mergedHeaderProps} />}
+            <View style={[resolvedContentStyle, contentContainerStyle]}>
                 {children}
             </View>
         </View>
@@ -101,6 +104,7 @@ const MasterPageLayout = ({
 
 MasterPageLayout.propTypes = {
     headerType: PropTypes.oneOf(['header', 'mainHeader', 'none']),
+    headerPreset: PropTypes.oneOf(['parent', 'child']),
     headerProps: PropTypes.object,
     contentStyle: PropTypes.oneOf(['main', 'booking', 'flat']),
     backgroundColor: PropTypes.string,

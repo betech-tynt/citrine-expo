@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerPaymentList } from '../../services/apiCustomerPaymentList';
@@ -330,9 +330,6 @@ const PaymentScreen = () => {
     // Common header props
     const headerProps = {
         title: t('citrine.msg000500'),
-        showCrudText: false,
-        showHomeIcon: false,
-        showBackIcon: false,
         onRightIconPress: handleSettingsPress,
         rightIcon: 'gear',
         rightIconType: 'FontAwesome',
@@ -341,16 +338,16 @@ const PaymentScreen = () => {
     // Show full-screen loading only on initial load (page 1)
     if (loading && page === 1) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ParentLayout headerType="header" headerProps={headerProps}>
             <FlatList
                 data={payments}
                 renderItem={renderPaymentCard}
@@ -367,7 +364,7 @@ const PaymentScreen = () => {
                 onRefresh={handleRefresh}
                 refreshing={loading && page === 1}
             />
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

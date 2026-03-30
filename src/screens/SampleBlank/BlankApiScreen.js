@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import CustomIcon from '../../components/CustomIcon';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
@@ -32,7 +32,6 @@ export default function BlankApiScreen() {
 
     const headerProps = {
         title: 'Screen Title',
-        showCrudText: false,
     };
 
     // ─── Fetch data from API ───
@@ -76,21 +75,21 @@ export default function BlankApiScreen() {
     // ─── Loading state ───
     if (loading && !data) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // ─── Error state ───
     if (error && !data) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -116,13 +115,13 @@ export default function BlankApiScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // ─── Main content ───
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ChildrenLayout headerType="header" headerProps={headerProps}>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -138,7 +137,7 @@ export default function BlankApiScreen() {
                 {/* ─── Render data here ─── */}
                 <Text style={styles.title}>{data?.message || 'No data'}</Text>
             </ScrollView>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 

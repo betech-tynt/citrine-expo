@@ -1,16 +1,55 @@
 import { StyleSheet, Text, View, SectionList } from 'react-native';
 import React from 'react';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import { moderateSize } from '../../styles';
 import colors from '../../constants/colors';
 
 const LIST_CHANGE_LOG = [
+    {
+        title: '0.1.58 - 28/03/2026',
+        data: [
+            '[608] s103_customer_booking - Update promotion - Update Layout',
+            '[735] s400_section_rating - Integrate Review Helpful Vote API P0405',
+        ],
+    },
+    {
+        title: '0.1.54 - 27/03/2026',
+        data: [
+            '[718] Create master layout for app screens',
+            '[724] Fix bug version 0.1.51',
+            '[736] s400_section_rating - Integrate Review List & Filter API P0401',
+            '[741] Fix bug version 0.1.52',
+        ],
+    },
+    {
+        title: '0.1.53 - 26/03/2026',
+        data: [
+            '[594] s302_payment_setting - Intergrate API',
+            '[628] s400_section_rating - Layout',
+            '[698] s102_customer_room_info - Integrate Section Info API P0102',
+            '[716] Fix bug version 0.1.4',
+            '[733] s111_customer_booking_history_info - Integrate Review Display API',
+            '[734] s111_customer_booking_history_info - Integrate Review Create/Update',
+        ],
+    },
+    {
+        title: '0.1.52 - 24/03/2026',
+        data: [
+            '[626] s102_customer_room_info - Update Rating - Layout',
+            '[690] Fix bug version 0.1.2',
+            '[693] Keyboard overlaps input fields on multiple screens',
+            '[695] Fix bug version 0.1.3',
+            '[719] s111_customer_booking_history_info - Update Rating - Layout',
+        ],
+    },
     {
         title: '0.1.51 - 18/03/2026',
         data: [
             '[588] Implement call API P0300_Customer_Payment_List_API',
             '[591] s301_payment_info - Integrate API',
             '[658] Add search by date range and guests',
+            '[660] Fix initial data loading on search screen',
+            '[670] Keyboard overlaps email input on Forgot Password screen (Samsung S24 Ultra)',
             '[676] Fix keyboard overlaps email input',
             '[682] Fix bug version 0.1.1',
             '[696] Fix bug: Change log overlaps section header',
@@ -155,9 +194,9 @@ const LIST_CHANGE_LOG = [
 
 export default function ChangeLogs() {
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
-            headerProps={{ title: 'Change Logs', showCrudText: false }}>
+            headerProps={{ title: 'Change Logs' }}>
             <SectionList
                 sections={LIST_CHANGE_LOG}
                 keyExtractor={(item, index) => `${item}-${index}`}
@@ -181,7 +220,7 @@ export default function ChangeLogs() {
                 )}
                 contentContainerStyle={styles.listContent}
             />
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 

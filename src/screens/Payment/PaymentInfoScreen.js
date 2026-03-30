@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
 import { fetchCustomerPaymentInfo } from '../../services/apiCustomerPaymentInfo';
@@ -85,17 +85,16 @@ const PaymentInfoScreen = () => {
 
     const headerProps = {
         title: t('citrine.msg000521'),
-        showCrudText: false,
         showHomeIcon: false,
     };
 
     if (!payment) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.contentContainer}>
                     <Text>No payment data</Text>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
@@ -241,7 +240,7 @@ const PaymentInfoScreen = () => {
     );
 
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ChildrenLayout headerType="header" headerProps={headerProps}>
             <ScrollView scrollEnabled={true}>
                 <View style={styles.contentContainer}>
                     {/* Subtle loading indicator while refreshing */}
@@ -386,7 +385,7 @@ const PaymentInfoScreen = () => {
                     </View>
                 </View>
             </ScrollView>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

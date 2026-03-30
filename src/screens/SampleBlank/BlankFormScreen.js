@@ -1,7 +1,7 @@
 /**
  * Template: Form Screen (Input + Submit)
  * Header: Header (back button + title)
- * Content: KeyboardAvoidingView + ScrollView
+ * Content: KeyboardAwareWrapper + ScrollView
  */
 import React, { useState } from 'react';
 import {
@@ -10,12 +10,12 @@ import {
     ScrollView,
     Text,
     Platform,
-    KeyboardAvoidingView,
     Alert,
 } from 'react-native';
+import KeyboardAwareWrapper from '../../components/KeyboardAwareWrapper';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import colors from '../../constants/colors';
@@ -80,13 +80,12 @@ export default function BlankFormScreen() {
     };
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
             headerProps={{
                 title: 'Form Title',
-                showCrudText: false,
             }}>
-            <KeyboardAvoidingView
+            <KeyboardAwareWrapper
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
@@ -164,14 +163,15 @@ export default function BlankFormScreen() {
                         textStyle={styles.submitButtonText}
                     />
                 </ScrollView>
-            </KeyboardAvoidingView>
-        </MasterPageLayout>
+            </KeyboardAwareWrapper>
+        </ChildrenLayout>
     );
 }
 
 const styles = StyleSheet.create({
     flex: {
         flex: 1,
+        // backgroundColor: colors.backgroundSecondary,
     },
     scrollContent: {
         padding: moderateSize(16),

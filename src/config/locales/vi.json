@@ -137,7 +137,28 @@
         "cancelSuccess": "Hủy đặt phòng thành công",
         "cancelFailed": "Hủy đặt phòng thất bại",
         "confirmCancelMessage": "Bạn có chắc chắn muốn hủy đặt phòng này không?",
-        "roomUnavailable": "Hiện không còn phòng trống vào ngày đã chọn."},
+        "roomUnavailable": "Hiện không còn phòng trống vào ngày đã chọn.",
+        "promotionTitle": "Chọn chương trình khuyến mãi",
+        "promotionSelect": "Chọn chương trình khuyến mãi",
+        "promotionNone": "Không áp dụng",
+        "bookingNoteTitle": "Ghi chú đặt phòng",
+        "bookingNotePlaceholder": "Nhập ghi chú thêm về yêu cầu đặc biệt, thời gian nhận phòng, v.v..."
+    },
+    "promotion": {
+        "screenTitle": "Chọn chương trình khuyến mãi",
+        "select": "Chọn chương trình khuyến mãi",
+        "none": "Không áp dụng",
+        "welcome2025": "Đón chào 2025",
+        "welcome2025Desc": "Giảm 15% cho khách hàng mới",
+        "discount30": "Giảm 30%",
+        "discount30Desc": "Chương trình sale mua nhiều tiết kiệm nhiều",
+        "vip": "VIP Premium",
+        "vipDesc": "Khách VIP được giảm trực tiếp",
+        "stay7": "7 Đêm Tiết Kiệm",
+        "stay7Desc": "Giảm 25% cho lưu trú 7 đêm trở lên",
+        "tet": "Tết 2025",
+        "tetDesc": "Chương trình Tết từ 01/02 - 10/03"
+    },
     "otp": {
         "title": "Forgot Password",
         "verifyTitle": "Xác minh OTP",
@@ -176,7 +197,8 @@
     },
         "validate": {
             "required": "Vui lòng nhập {{field}}",
-            "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ."
+            "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ.",
+            "emailRequired": "Vui lòng nhập địa chỉ email của bạn."
         },
     "customerRoomInfo": {
         "sections": {
@@ -188,7 +210,8 @@
             "seeMore": "Xem thêm",
             "seeLess": "Thu gọn",
             "openMap": "Mở bản đồ",
-            "chooseRoom": "Chọn phòng"
+            "chooseRoom": "Chọn phòng",
+            "viewAllReviews": "Xem tất cả đánh giá"
         },
         "amenities": {
             "freeWifi": "Wi‑Fi miễn phí",
@@ -207,12 +230,43 @@
         },
         "demoDescription": "Tọa lạc tại vị trí đắc địa, {{hotelName}} mang đến một không gian nghỉ dưỡng sang trọng và đẳng cấp. Với kiến trúc hiện đại và dịch vụ chuyên nghiệp..."
     },
+    "sectionRating": {
+        "title": "Đánh giá khách sạn",
+        "allRatingsPublic": "Công khai toàn bộ đánh giá",
+        "basedOn": "Dựa trên {{count}} đánh giá",
+        "noReviews": "Chưa có đánh giá nào",
+        "breakdown": {
+            "roomQuality": "Chất lượng phòng",
+            "cleanliness": "Sạch sẽ",
+            "service": "Dịch vụ",
+            "value": "Giá trị tiền",
+            "location": "Vị trí"
+        },
+        "criteria": {
+            "room": "Phòng",
+            "cleanliness": "Sạch sẽ",
+            "service": "Dịch vụ",
+            "price": "Giá",
+            "location": "Vị trí"
+        },
+        "filter": {
+            "all": "Tất cả",
+            "mostHelpful": "Hữu ích nhất"
+        },
+        "helpful": "{{count}} người tìm thấy hữu ích",
+        "roomType": {
+            "deluxe": "Phòng Deluxe",
+            "standard": "Phòng Standard",
+            "suite": "Phòng Suite"
+        }
+    },
     "customerSearch": {
         "title": "Tìm kiếm",
         "searchPlaceholder": "Hà Nội",
         "perNight": "đêm",
         "inputAddress": "Nhập địa chỉ để tìm kiếm",
-        "noResults": "Không tìm thấy phòng nào",
+        "noResults":"Không tìm thấy phòng nào",
+        "noPopularRooms": "Không có phòng phổ biến nào",
         "resultsFound": "Tìm thấy {{count}} kết quả",
         "filters": {
             "all": "Tất cả",
@@ -1016,28 +1070,28 @@
         "msg000697": "",
         "msg000698": "",
         "msg000699": "",
-        "msg000700": "",
-        "msg000701": "",
-        "msg000702": "",
-        "msg000703": "",
-        "msg000704": "",
-        "msg000705": "",
-        "msg000706": "",
-        "msg000707": "",
-        "msg000708": "",
-        "msg000709": "",
-        "msg000710": "",
-        "msg000711": "",
-        "msg000712": "",
-        "msg000713": "",
-        "msg000714": "",
-        "msg000715": "",
-        "msg000716": "",
-        "msg000717": "",
-        "msg000718": "",
-        "msg000719": "",
-        "msg000720": "",
-        "msg000721": "",
+        "msg000700": "Đánh giá dịch vụ",
+        "msg000701": "Chất lượng phòng",
+        "msg000702": "Sạch sẽ",
+        "msg000703": "Dịch vụ",
+        "msg000704": "Giá trị tiền",
+        "msg000705": "Vị trí",
+        "msg000706": "Trải nghiệm tổng thể",
+        "msg000707": "Đánh giá tổng thể",
+        "msg000708": "Nhận xét của bạn",
+        "msg000709": "Chia sẻ chi tiết về trải nghiệm của bạn...",
+        "msg000710": "Gửi đánh giá",
+        "msg000711": "Chưa đánh giá",
+        "msg000712": "Rất tệ",
+        "msg000713": "Tệ",
+        "msg000714": "Bình thường",
+        "msg000715": "Tốt",
+        "msg000716": "Rất tốt",
+        "msg000717": "Hãy chia sẻ trải nghiệm của bạn để giúp chúng tôi cải thiện dịch vụ",
+        "msg000718": "Cảm ơn bạn đã đánh giá! Đánh giá của bạn đã được lưu thành công.",
+        "msg000719": "Vui lòng đánh giá tất cả {{count}} tiêu chí còn chưa hoàn thành",
+        "msg000720": "Không thể gửi đánh giá",
+        "msg000721": "Cập nhật đánh giá thất bại",
         "msg000722": "",
         "msg000723": "",
         "msg000724": "",

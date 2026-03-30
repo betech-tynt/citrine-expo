@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import Button from '../../../components/Button';
 import OtpInput from '../../../components/OtpInput';
 import colors from '../../../constants/colors';
@@ -125,7 +125,12 @@ export default function OtpCodeScreen() {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.verifyTitle'), showCrudText: false }}>
+        <ChildrenLayout
+            headerType="header"
+            headerProps={{
+                title: t('otp.verifyTitle'),
+                showHomeIcon: false,
+            }}>
             <View style={styles.mainContent}>
                 {otpMessage ? (
                     <View style={styles.successBanner}>
@@ -166,21 +171,23 @@ export default function OtpCodeScreen() {
                     </Text>
                 </View>
 
-                <TouchableOpacity
-                    onPress={handleResend}
-                    activeOpacity={0.7}
-                    disabled={isLoading}
-                    style={styles.resendButton}>
-                    <Text
-                        style={[
-                            styles.resendLink,
-                            isLoading && styles.resendLinkDisabled,
-                        ]}>
-                        {t('otp.resendPrompt')}
-                    </Text>
-                </TouchableOpacity>
+                {secondsLeft === 0 && (
+                    <TouchableOpacity
+                        onPress={handleResend}
+                        activeOpacity={0.7}
+                        disabled={isLoading}
+                        style={styles.resendButton}>
+                        <Text
+                            style={[
+                                styles.resendLink,
+                                isLoading && styles.resendLinkDisabled,
+                            ]}>
+                            {t('otp.resendPrompt')}
+                        </Text>
+                    </TouchableOpacity>
+                )}
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 

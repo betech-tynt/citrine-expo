@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    Image,
+    ScrollView,
+    TouchableOpacity,
+    TextInput,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../../components/ChildrenLayout';
 import { moderateSize } from '../../../../styles';
 import colors from '../../../../constants/colors';
 import { formatDate } from '../../../../utils/formatDate';
@@ -12,6 +20,7 @@ import BookingInfoRow from './BookingInfoRow';
 import GuestCounterRow from './GuestCounterRow';
 import BookingCalendarModal from './BookingCalendarModal';
 import Button from '../../../../components/Button';
+import PromotionSelectModal from '../../../../components/modals/PromotionSelectModal';
 
 export default function CustomerBookingScreen() {
     const { t } = useTranslation();
@@ -29,22 +38,26 @@ export default function CustomerBookingScreen() {
     const totalRoomsParam = Number(route?.params?.totalRooms || 0);
 
     // Basic hotel/room display fields (fallback-safe)
-    const hotelName = bookingDraft?.hotelName || '';
-    const selectedRoomName =
-        bookingDraft?.selectedRoom?.name || bookingDraft?.roomName || '';
-
-    // Base unit price fallback (single-room flow); multi-room flow uses selections pricing
-    const unitPrice = Number(
-        bookingDraft?.unitPrice || bookingDraft?.selectedRoom?.min_price || 0,
+    const [hotelName, setHotelName] = useState(bookingDraft?.hotelName || '');
+    const [selectedRoomName, setSelectedRoomName] = useState(
+        bookingDraft?.selectedRoom?.name || bookingDraft?.roomName || '',
     );
 
-    // Total rooms selected (can come from RoomInfo selections or bookingDraft)
-    const roomCount = Number(totalRoomsParam || bookingDraft?.roomCount || 1);
+    // Base unit price fallback (single-room flow); multi-room flow uses selections pricing
+    const [unitPrice, setUnitPrice] = useState(() =>
+        Number(
+            bookingDraft?.unitPrice ||
+                bookingDraft?.selectedRoom?.min_price ||
+                0,
+        ),
+    );
 
-    // Normalize selections object (RoomInfo passes { [roomTypeId]: { roomType, quantity } })
-    const selectionList = useMemo(
-        () => Object.values(selections || {}),
-        [selections],
+    const [roomCount, setRoomCount] = useState(() =>
+        Number(totalRoomsParam || bookingDraft?.roomCount || 1),
+    );
+
+    const [selectionList, setSelectionList] = useState(() =>
+        Object.values(selections || {}),
     );
 
     // Preview image for single-room fallback card
@@ -82,16 +95,20 @@ export default function CustomerBookingScreen() {
 
     const [adultCount, setAdultCount] = useState(initialAdults);
     const [childrenCount, setChildrenCount] = useState(initialChildren);
+    const [localSelectedPromotions, setLocalSelectedPromotions] = useState([]);
+    const [promotionModalVisible, setPromotionModalVisible] = useState(false);
+    const [note, setNote] = useState('');
+    const [promotionPressed, setPromotionPressed] = useState(false);
 
     // Guard flag: persist effect must not write until the initial load completes,
     // otherwise it overwrites the saved dates with today's defaults.
     const [hasLoadedCache, setHasLoadedCache] = useState(false);
 
-    // Load persisted guest counts and booking dates when the screen mounts.
+    // Load persisted data (guests, dates, promotion, note)
     useEffect(() => {
         let isMounted = true;
 
-        const loadPersistedGuests = async () => {
+        const loadPersistedData = async () => {
             try {
                 const raw = await AsyncStorage.getItem(guestStorageKey);
                 if (!raw) return;
@@ -117,9 +134,30 @@ export default function CustomerBookingScreen() {
                 ) {
                     setCheckOutISO(parsed.checkOutISO);
                 }
+                if (typeof parsed.unitPrice === 'number') {
+                    setUnitPrice(parsed.unitPrice);
+                }
+                if (typeof parsed.roomCount === 'number') {
+                    setRoomCount(parsed.roomCount);
+                }
+                if (Array.isArray(parsed.selectionList)) {
+                    setSelectionList(parsed.selectionList);
+                }
+                if (typeof parsed.hotelName === 'string') {
+                    setHotelName(parsed.hotelName);
+                }
+                if (typeof parsed.selectedRoomName === 'string') {
+                    setSelectedRoomName(parsed.selectedRoomName);
+                }
+                if (Array.isArray(parsed.selectedPromotions)) {
+                    setLocalSelectedPromotions(parsed.selectedPromotions);
+                }
+                if (typeof parsed.note === 'string') {
+                    setNote(parsed.note);
+                }
             } catch (error) {
                 console.warn(
-                    '[CustomerBookingScreen] Failed to load guest cache:',
+                    '[CustomerBookingScreen] Failed to load data:',
                     error,
                 );
             } finally {
@@ -129,19 +167,19 @@ export default function CustomerBookingScreen() {
             }
         };
 
-        loadPersistedGuests();
+        loadPersistedData();
 
         return () => {
             isMounted = false;
         };
     }, [guestStorageKey]);
 
-    // Persist guest counts and booking dates whenever they change.
+    // Persist all data (guests, dates, promotion, note) whenever they change.
     // Skip until the initial load is done so we don't overwrite saved values.
     useEffect(() => {
         if (!hasLoadedCache) return;
 
-        const persistGuests = async () => {
+        const persistData = async () => {
             try {
                 await AsyncStorage.setItem(
                     guestStorageKey,
@@ -150,23 +188,33 @@ export default function CustomerBookingScreen() {
                         children: childrenCount,
                         checkInISO: checkInISO,
                         checkOutISO: checkOutISO,
+                        hotelName,
+                        selectedRoomName,
+                        unitPrice,
+                        roomCount,
+                        selectionList,
+                        localSelectedPromotions,
+                        note,
                     }),
                 );
             } catch (error) {
                 console.warn(
-                    '[CustomerBookingScreen] Failed to persist guest cache:',
+                    '[CustomerBookingScreen] Failed to persist data:',
                     error,
                 );
             }
         };
 
-        persistGuests();
+        persistData();
+        // persistGuests();
     }, [
         hasLoadedCache,
         adultCount,
         childrenCount,
         checkInISO,
         checkOutISO,
+        localSelectedPromotions,
+        note,
         guestStorageKey,
     ]);
 
@@ -312,6 +360,13 @@ export default function CustomerBookingScreen() {
     // Continue -> BookingConfirmScreen
     // Build bookingData that matches BookingConfirmScreen expectations
     // -----------------------------
+    // Removed legacy single promotion handling as multi-select is now implemented
+
+    const handlePromotionPress = () => {
+        setPromotionPressed(!promotionPressed);
+        setPromotionModalVisible(true);
+    };
+
     const handleContinue = () => {
         if (!canContinue) return;
 
@@ -354,15 +409,19 @@ export default function CustomerBookingScreen() {
             roomPrice,
             taxAndFees: 0,
             total,
+            note,
+            promotions: localSelectedPromotions,
         };
 
-        // Merge current state (dates, guests) into bookingDraft for API call
+        // Merge current state into bookingDraft for API call
         const updatedBookingDraft = {
             ...bookingDraft,
             checkInISO: checkInISO,
             checkOutISO: checkOutISO,
             adults: adultCount,
             children: childrenCount,
+            localSelectedPromotions,
+            note,
         };
 
         navigation.navigate('BookingConfirmScreen', {
@@ -378,11 +437,10 @@ export default function CustomerBookingScreen() {
 
     return (
         <>
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: t('booking.bookingDetailTitle'),
-                    showCrudText: false,
                 }}>
                 <View style={[styles.mainContent, styles.backgroundColor]}>
                     <ScrollView
@@ -541,6 +599,88 @@ export default function CustomerBookingScreen() {
                                 />
                             </View>
                         </View>
+
+                        {/* Promotion selection */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('booking.promotionTitle')}
+                            </Text>
+
+                            <TouchableOpacity
+                                style={{ flex: 1 }}
+                                activeOpacity={0.97}
+                                onPress={handlePromotionPress}>
+                                <View style={styles.card}>
+                                    <View style={styles.promotionHeader}>
+                                        <Text style={styles.promotionTitle}>
+                                            {t('booking.promotionTitle')}
+                                        </Text>
+
+                                        <TouchableOpacity
+                                            style={styles.chevronIcon}
+                                            onPress={handlePromotionPress}
+                                            activeOpacity={0.7}>
+                                            <Text style={styles.chevronText}>
+                                                ›
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <Text style={styles.promotionValue}>
+                                        {localSelectedPromotions.length > 0
+                                            ? localSelectedPromotions.map(
+                                                  (p, index) => (
+                                                      <Text key={p.id}>
+                                                          <View
+                                                              style={
+                                                                  styles.promotionPill
+                                                              }>
+                                                              <Text
+                                                                  style={
+                                                                      styles.promotionPillText
+                                                                  }>
+                                                                  {p.title}{' '}
+                                                                  <Text
+                                                                      style={
+                                                                          styles.promotionPillDiscount
+                                                                      }>
+                                                                      {p.discount ||
+                                                                          ''}
+                                                                  </Text>
+                                                              </Text>
+                                                          </View>
+                                                          {index <
+                                                              localSelectedPromotions.length -
+                                                                  1 && ' '}
+                                                      </Text>
+                                                  ),
+                                              )
+                                            : t('booking.promotionNone')}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Booking note */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>
+                                {t('booking.bookingNoteTitle')}
+                            </Text>
+
+                            <View style={styles.card}>
+                                <TextInput
+                                    style={styles.noteInput}
+                                    placeholder={t(
+                                        'booking.bookingNotePlaceholder',
+                                    )}
+                                    placeholderTextColor={colors.textSecondary}
+                                    multiline
+                                    numberOfLines={3}
+                                    value={note}
+                                    onChangeText={setNote}
+                                />
+                            </View>
+                        </View>
                     </ScrollView>
                 </View>
 
@@ -567,7 +707,7 @@ export default function CustomerBookingScreen() {
                         disabled={!canContinue}
                     />
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
             {/* Calendar modal for picking dates */}
             <BookingCalendarModal
                 visible={calendarVisible}
@@ -576,6 +716,12 @@ export default function CustomerBookingScreen() {
                 onChangeTempISO={setCalendarTempISO}
                 onCancel={closeCalendar}
                 onConfirm={confirmCalendar}
+            />
+            <PromotionSelectModal
+                visible={promotionModalVisible}
+                selectedPromotions={localSelectedPromotions}
+                onClose={() => setPromotionModalVisible(false)}
+                onConfirm={setLocalSelectedPromotions}
             />
         </>
     );
@@ -643,6 +789,64 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: colors.textPrimary,
         marginBottom: moderateSize(8),
+    },
+    promotionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: moderateSize(8),
+    },
+    promotionTitle: {
+        fontSize: moderateSize(16),
+        fontWeight: '500',
+        color: colors.textPrimary,
+        flex: 1,
+    },
+    promotionValue: {
+        fontSize: moderateSize(16),
+        fontWeight: '600',
+        color: colors.primary,
+        marginTop: moderateSize(4),
+    },
+    promotionPill: {
+        backgroundColor: '#EEF2FF',
+        paddingHorizontal: moderateSize(8),
+        paddingVertical: moderateSize(4),
+        borderRadius: moderateSize(20),
+        marginVertical: moderateSize(2),
+        marginRight: moderateSize(8),
+    },
+    promotionPillText: {
+        fontSize: moderateSize(14),
+        color: colors.primary,
+        fontWeight: '400',
+    },
+    promotionPillDiscount: {
+        fontWeight: '600',
+        color: colors.primary,
+    },
+    chevronIcon: {
+        width: moderateSize(24),
+        height: moderateSize(24),
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+    },
+    chevronText: {
+        fontSize: moderateSize(24),
+        color: colors.textSecondary,
+        lineHeight: moderateSize(24),
+        fontWeight: '300',
+    },
+    noteInput: {
+        flex: 1,
+        fontSize: moderateSize(14),
+        color: colors.textPrimary,
+        padding: moderateSize(12),
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: moderateSize(8),
+        textAlignVertical: 'top',
+        minHeight: moderateSize(80),
     },
     bottomBar: {
         position: 'absolute',

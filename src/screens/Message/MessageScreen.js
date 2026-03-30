@@ -1,13 +1,13 @@
 import React from 'react';
 import { FlatList } from 'react-native-gesture-handler';
 import MessageItem from '../../components/MessageItem';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import { SAMPLE_MESSAGE } from '../../constants/utils';
 import { moderateSize } from '../../styles';
 
 const MessageScreen = () => {
     return (
-        <MasterPageLayout
+        <ParentLayout
             headerType="mainHeader"
             headerProps={{ username: 'Snake', notificationCount: 3 }}>
             <FlatList
@@ -25,7 +25,7 @@ const MessageScreen = () => {
                 keyExtractor={item => item?.id?.toString() || ''}
                 contentContainerStyle={{ padding: moderateSize(16) }}
             />
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

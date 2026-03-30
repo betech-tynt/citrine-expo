@@ -1,21 +1,15 @@
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import MasterPageLayout from '../../components/MasterPageLayout';
 import { moderateSize } from '../../styles';
+import ParentLayout from '../../components/ParentLayout';
 
 const CleaningScreen = () => {
     return (
-        <MasterPageLayout
-            headerType="header"
-            headerProps={{
-                title: 'Cleaning',
-                showCrudText: false,
-                showHomeIcon: false,
-            }}>
+        <ParentLayout headerType="header" headerProps={{ title: 'Cleaning' }}>
             <View style={styles.content}>
                 <Text>CleaningScreen</Text>
             </View>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

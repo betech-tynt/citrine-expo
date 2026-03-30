@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import CustomIcon from '../../components/CustomIcon';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles';
@@ -35,7 +35,6 @@ export default function BlankListScreen() {
 
     const headerProps = {
         title: 'List Title',
-        showCrudText: false,
     };
 
     // Fetch list from API
@@ -124,21 +123,21 @@ export default function BlankListScreen() {
     // Loading state (first load)
     if (loading && items.length === 0) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // Error state (no data)
     if (error && items.length === 0) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ChildrenLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -157,13 +156,13 @@ export default function BlankListScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // Main list
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ChildrenLayout headerType="header" headerProps={headerProps}>
             <FlatList
                 data={items}
                 keyExtractor={item => item.id}
@@ -209,7 +208,7 @@ export default function BlankListScreen() {
                     </View>
                 }
             />
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 
@@ -220,6 +219,7 @@ const styles = StyleSheet.create({
     },
     emptyList: {
         flexGrow: 1,
+        // backgroundColor: colors.backgroundSecondary,
     },
 
     // Center states

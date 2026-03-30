@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import GridMenu from '../../components/GridMenu';
 import { useTranslation } from 'react-i18next';
 import { moderateSize } from '../../styles';
@@ -13,6 +13,7 @@ import {
     ROLE_STAFF_MANAGER,
 } from '../../constants/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { log } from '../../utils/handleLog';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
@@ -39,11 +40,12 @@ const HomeScreen = () => {
         loadRole();
     }, []);
     const handlePress = () => {
-        navigation.navigate('WorkRegisterMonthScreen');
+        log('handlePress');
+        // navigation.navigate('');
     };
 
     return (
-        <MasterPageLayout
+        <ParentLayout
             headerType="mainHeader"
             headerProps={{ username: 'Snake', notificationCount: 3 }}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -95,7 +97,7 @@ const HomeScreen = () => {
                     </View>
                 )}
             </ScrollView>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

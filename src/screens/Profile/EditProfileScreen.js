@@ -1,10 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
     Alert,
-    KeyboardAvoidingView,
     Modal,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -13,7 +11,7 @@ import {
 import DatePicker from 'react-native-date-picker';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
 import RadioButton from '../../components/RadioButton';
@@ -23,6 +21,8 @@ import { moderateSize } from '../../styles/moderateSize';
 import { updateProfile } from '../../services/auth';
 import { log } from '../../utils/handleLog';
 import { formatDate } from '../../utils/formatDate';
+import KeyboardAwareWrapper from '../../components/KeyboardAwareWrapper';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // Country list
 const COUNTRIES = [
@@ -331,198 +331,201 @@ const EditProfileScreen = () => {
 
     return (
         <View style={styles.container}>
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: t('profile.editProfile'),
-                    showCrudText: false,
                 }}>
-                <KeyboardAvoidingView
+                <KeyboardAwareWrapper
                     style={styles.card}
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.scrollContent}>
-                    {/* Kanji Name - Two columns */}
-                    <View style={styles.row}>
-                        <FormInput
-                            width="48%"
-                            label={t('profile.labels.lastNameKanji')}
-                            placeholder={t(
-                                'profile.placeholders.enterLastName',
-                            )}
-                            value={lastNameKanji}
-                            onChangeText={setLastNameKanji}
-                        />
-                        <FormInput
-                            width="48%"
-                            label={t('profile.labels.firstNameKanji')}
-                            placeholder={t(
-                                'profile.placeholders.enterFirstName',
-                            )}
-                            value={firstNameKanji}
-                            onChangeText={setFirstNameKanji}
-                        />
-                    </View>
-
-                    {/* Katakana Name - Two columns */}
-                    <View style={styles.row}>
-                        <FormInput
-                            width="48%"
-                            label={t('profile.labels.lastNameKatakana')}
-                            placeholder={t(
-                                'profile.placeholders.enterLastName',
-                            )}
-                            value={lastNameKatakana}
-                            onChangeText={setLastNameKatakana}
-                        />
-                        <FormInput
-                            width="48%"
-                            label={t('profile.labels.firstNameKatakana')}
-                            placeholder={t(
-                                'profile.placeholders.enterFirstName',
-                            )}
-                            value={firstNameKatakana}
-                            onChangeText={setFirstNameKatakana}
-                        />
-                    </View>
-
-                    {/* Phone Number */}
-                    <FormInput
-                        width="100%"
-                        label={t('profile.labels.phoneNumber')}
-                        placeholder={t('profile.placeholders.enterPhoneNumber')}
-                        keyboardType="phone-pad"
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                    />
-
-                    {/* Gender */}
-                    <Text style={styles.sectionLabel}>
-                        {t('profile.labels.gender')}
-                    </Text>
-                    <View style={styles.genderRow}>
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.genderOption}
-                            onPress={() => setGender('male')}>
-                            <RadioButton
-                                checked={gender === 'male'}
-                                onPress={() => setGender('male')}
-                            />
-                            <Text style={styles.genderText}>
-                                {t('profile.gender.male')}
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.genderOption}
-                            onPress={() => setGender('female')}>
-                            <RadioButton
-                                checked={gender === 'female'}
-                                onPress={() => setGender('female')}
-                            />
-                            <Text style={styles.genderText}>
-                                {t('profile.gender.female')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Birthday */}
-                    <FormInput
-                        width="100%"
-                        label={t('profile.labels.birthday')}
-                        placeholder={t('profile.placeholders.birthday')}
-                        value={birthdayDisplay}
-                        editable={false}
-                        textColor={colors.textPrimary}
-                        endIcon="calendar-alt"
-                        iconColor={colors.textSecondary}
-                        onPress={openDatePicker}
-                        onEndIconPress={openDatePicker}
-                    />
-
-                    {/* Country */}
-                    <AppSelect
-                        label={t('profile.labels.country')}
-                        placeholder={t('profile.placeholders.chooseCountry')}
-                        value={country}
-                        options={COUNTRIES}
-                        onSelect={handleCountrySelect}
-                        inputContainerStyle={styles.countryInput}
-                    />
-
-                    {/* Japan-specific fields - Conditional rendering */}
-                    {isJapan && (
-                        <>
+                        {/* Kanji Name - Two columns */}
+                        <View style={styles.row}>
                             <FormInput
-                                width="100%"
-                                label={t('profile.labels.postalCode')}
+                                width="48%"
+                                label={t('profile.labels.lastNameKanji')}
                                 placeholder={t(
-                                    'profile.placeholders.enterPostalCode',
+                                    'profile.placeholders.enterLastName',
                                 )}
-                                value={postalCode}
-                                onChangeText={setPostalCode}
-                                keyboardType="default"
+                                value={lastNameKanji}
+                                onChangeText={setLastNameKanji}
                             />
-
                             <FormInput
-                                width="100%"
-                                label={t('profile.labels.prefecture')}
+                                width="48%"
+                                label={t('profile.labels.firstNameKanji')}
                                 placeholder={t(
-                                    'profile.placeholders.enterPrefecture',
+                                    'profile.placeholders.enterFirstName',
                                 )}
-                                value={prefecture}
-                                onChangeText={setPrefecture}
+                                value={firstNameKanji}
+                                onChangeText={setFirstNameKanji}
                             />
+                        </View>
 
+                        {/* Katakana Name - Two columns */}
+                        <View style={styles.row}>
                             <FormInput
-                                width="100%"
-                                label={t('profile.labels.municipality')}
+                                width="48%"
+                                label={t('profile.labels.lastNameKatakana')}
                                 placeholder={t(
-                                    'profile.placeholders.enterMunicipality',
+                                    'profile.placeholders.enterLastName',
                                 )}
-                                value={municipality}
-                                onChangeText={setMunicipality}
+                                value={lastNameKatakana}
+                                onChangeText={setLastNameKatakana}
                             />
-
                             <FormInput
-                                width="100%"
-                                label={t('profile.labels.town')}
+                                width="48%"
+                                label={t('profile.labels.firstNameKatakana')}
                                 placeholder={t(
-                                    'profile.placeholders.enterTownName',
+                                    'profile.placeholders.enterFirstName',
                                 )}
-                                value={town}
-                                onChangeText={setTown}
+                                value={firstNameKatakana}
+                                onChangeText={setFirstNameKatakana}
                             />
-                        </>
-                    )}
+                        </View>
 
-                    {/* Address - Always visible */}
-                    <FormInput
-                        width="100%"
-                        label={t('profile.labels.address')}
-                        placeholder={t('profile.placeholders.enterAddress')}
-                        value={address}
-                        onChangeText={handleAddressChange}
-                        errorMessage={addressError}
-                        multiline
-                    />
+                        {/* Phone Number */}
+                        <FormInput
+                            width="100%"
+                            label={t('profile.labels.phoneNumber')}
+                            placeholder={t(
+                                'profile.placeholders.enterPhoneNumber',
+                            )}
+                            keyboardType="phone-pad"
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                        />
 
-                    {/* Save Button */}
-                    <Button
-                        title={t('profile.save')}
-                        onPress={handleSubmit}
-                        disabled={!canSubmit}
-                        loading={loading}
-                        style={styles.saveButton}
-                    />
+                        {/* Gender */}
+                        <Text style={styles.sectionLabel}>
+                            {t('profile.labels.gender')}
+                        </Text>
+                        <View style={styles.genderRow}>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                style={styles.genderOption}
+                                onPress={() => setGender('male')}>
+                                <RadioButton
+                                    checked={gender === 'male'}
+                                    onPress={() => setGender('male')}
+                                />
+                                <Text style={styles.genderText}>
+                                    {t('profile.gender.male')}
+                                </Text>
+                            </TouchableOpacity>
 
-                    <View style={styles.bottomSpacer} />
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                style={styles.genderOption}
+                                onPress={() => setGender('female')}>
+                                <RadioButton
+                                    checked={gender === 'female'}
+                                    onPress={() => setGender('female')}
+                                />
+                                <Text style={styles.genderText}>
+                                    {t('profile.gender.female')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Birthday */}
+                        <FormInput
+                            width="100%"
+                            label={t('profile.labels.birthday')}
+                            placeholder={t('profile.placeholders.birthday')}
+                            value={birthdayDisplay}
+                            editable={false}
+                            textColor={colors.textPrimary}
+                            endIcon="calendar-alt"
+                            iconColor={colors.textSecondary}
+                            onPress={openDatePicker}
+                            onEndIconPress={openDatePicker}
+                        />
+
+                        {/* Country */}
+                        <AppSelect
+                            label={t('profile.labels.country')}
+                            placeholder={t(
+                                'profile.placeholders.chooseCountry',
+                            )}
+                            value={country}
+                            options={COUNTRIES}
+                            onSelect={handleCountrySelect}
+                            inputContainerStyle={styles.countryInput}
+                        />
+
+                        {/* Japan-specific fields - Conditional rendering */}
+                        {isJapan && (
+                            <>
+                                <FormInput
+                                    width="100%"
+                                    label={t('profile.labels.postalCode')}
+                                    placeholder={t(
+                                        'profile.placeholders.enterPostalCode',
+                                    )}
+                                    value={postalCode}
+                                    onChangeText={setPostalCode}
+                                    keyboardType="default"
+                                />
+
+                                <FormInput
+                                    width="100%"
+                                    label={t('profile.labels.prefecture')}
+                                    placeholder={t(
+                                        'profile.placeholders.enterPrefecture',
+                                    )}
+                                    value={prefecture}
+                                    onChangeText={setPrefecture}
+                                />
+
+                                <FormInput
+                                    width="100%"
+                                    label={t('profile.labels.municipality')}
+                                    placeholder={t(
+                                        'profile.placeholders.enterMunicipality',
+                                    )}
+                                    value={municipality}
+                                    onChangeText={setMunicipality}
+                                />
+
+                                <FormInput
+                                    width="100%"
+                                    label={t('profile.labels.town')}
+                                    placeholder={t(
+                                        'profile.placeholders.enterTownName',
+                                    )}
+                                    value={town}
+                                    onChangeText={setTown}
+                                />
+                            </>
+                        )}
+
+                        {/* Address - Always visible */}
+                        <FormInput
+                            width="100%"
+                            label={t('profile.labels.address')}
+                            placeholder={t('profile.placeholders.enterAddress')}
+                            value={address}
+                            onChangeText={handleAddressChange}
+                            errorMessage={addressError}
+                            multiline
+                        />
+
+                        {/* Save Button */}
+                        <Button
+                            title={t('profile.save')}
+                            onPress={handleSubmit}
+                            disabled={!canSubmit}
+                            loading={loading}
+                            style={styles.saveButton}
+                        />
+
+                        <View style={styles.bottomSpacer} />
                     </ScrollView>
-                </KeyboardAvoidingView>
-            </MasterPageLayout>
+                </KeyboardAwareWrapper>
+            </ChildrenLayout>
 
             {/* DatePicker Modal - react-native-date-picker with custom Modal */}
             <Modal

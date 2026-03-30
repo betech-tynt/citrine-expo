@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../../components/ChildrenLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import Button from '../../../../components/Button';
@@ -132,7 +132,7 @@ const BookingCancelScreen = () => {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('citrine.msg000300'), showCrudText: false }}>
+        <ChildrenLayout headerType="header" headerProps={{ title: t('citrine.msg000300') }}>
             <ScrollView
                 style={styles.mainContent}
                 contentContainerStyle={[
@@ -226,7 +226,7 @@ const BookingCancelScreen = () => {
                     </View>
                 )}
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

@@ -13,7 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ParentLayout from '../../components/ParentLayout';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
 import { logout, getUserData } from '../../services/auth';
@@ -23,7 +23,7 @@ import CustomIcon from '../../components/CustomIcon';
 import Profile from './Profile';
 import SettingMenu from './SettingMenu';
 import { log } from '../../utils/handleLog';
-import { isAuthError, handleAuthError } from '../../utils/authErrorHandler';
+import { isAuthError } from '../../utils/authErrorHandler';
 
 const Account = () => {
     const { t, i18n } = useTranslation();
@@ -50,7 +50,6 @@ const Account = () => {
             // Double check token before calling API
             const token = await AsyncStorage.getItem('token');
             if (!token) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -96,7 +95,6 @@ const Account = () => {
 
             // Check if error is authentication related
             if (isAuthError(errorMessage)) {
-                handleAuthError(navigation);
                 return;
             }
 
@@ -221,29 +219,26 @@ const Account = () => {
     // Common header props
     const headerProps = {
         title: t('setting.userProfile'),
-        showCrudText: false,
-        showHomeIcon: false,
-        showBackIcon: false,
     };
 
     // Loading state
     if (loading) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>
                         {t('common.loading')}
                     </Text>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     // Error state
     if (error) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.centerContainer}>
                     <CustomIcon
                         type="FontAwesome5"
@@ -269,12 +264,12 @@ const Account = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ParentLayout headerType="header" headerProps={headerProps}>
             <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
@@ -302,7 +297,7 @@ const Account = () => {
                     />
                 </View>
             </ScrollView>
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

@@ -32,14 +32,29 @@ function RoomTypeCard({ roomType, onChoose, chooseLabel }) {
                     <Text style={styles.roomTypePrice}>
                         {formatCurrency(roomType?.price)}
                     </Text>
-                    <TouchableOpacity
-                        onPress={onChoose}
-                        activeOpacity={0.85}
-                        style={styles.roomTypeChooseBtn}>
-                        <Text style={styles.roomTypeChooseText}>
-                            {chooseLabel}
-                        </Text>
-                    </TouchableOpacity>
+                    {(() => {
+                        const isDisabled = roomType?.available_rooms === 0;
+                        return (
+                            <TouchableOpacity
+                                disabled={isDisabled}
+                                onPress={onChoose}
+                                activeOpacity={0.85}
+                                style={[
+                                    styles.roomTypeChooseBtn,
+                                    isDisabled &&
+                                        styles.roomTypeChooseBtnDisabled,
+                                ]}>
+                                <Text
+                                    style={[
+                                        styles.roomTypeChooseText,
+                                        isDisabled &&
+                                            styles.roomTypeChooseTextDisabled,
+                                    ]}>
+                                    {chooseLabel}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })()}
                 </View>
             </View>
         </View>
@@ -58,6 +73,7 @@ RoomTypeCard.propTypes = {
                 url: PropTypes.string,
             }),
         ),
+        available_rooms: PropTypes.number,
     }).isRequired,
     onChoose: PropTypes.func.isRequired,
     chooseLabel: PropTypes.string.isRequired,
@@ -116,10 +132,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: moderateSize(14),
         borderRadius: moderateSize(10),
     },
+    roomTypeChooseBtnDisabled: {
+        backgroundColor: '#F5F5F5',
+        opacity: 0.6,
+    },
     roomTypeChooseText: {
         color: colors.primary,
         fontSize: moderateSize(12),
         fontWeight: '700',
+    },
+    roomTypeChooseTextDisabled: {
+        color: colors.textSecondary,
     },
 });
 

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { log } from '../../../utils/handleLog';
 import { moderateSize } from '../../../styles';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import colors from '../../../constants/colors';
@@ -66,7 +66,9 @@ export default function ResetPassword() {
             const result = await forgotPassword(email, newPassword, otp);
             if (result?.status === 1) {
                 navigation.navigate('SuccessScreen', {
-                    message: result?.message || 'Your password has been reset successfully!',
+                    message:
+                        result?.message ||
+                        'Your password has been reset successfully!',
                 });
             } else {
                 setSubmitError(result?.message || t('common.error'));
@@ -78,7 +80,12 @@ export default function ResetPassword() {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('resetPassword.title'), showCrudText: false }}>
+        <ChildrenLayout
+            headerType="header"
+            headerProps={{
+                title: t('resetPassword.title'),
+                showHomeIcon: false,
+            }}>
             <View style={styles.mainContent}>
                 {submitError ? (
                     <Text style={styles.submitError}>{submitError}</Text>
@@ -138,7 +145,7 @@ export default function ResetPassword() {
                     />
                 </View>
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 

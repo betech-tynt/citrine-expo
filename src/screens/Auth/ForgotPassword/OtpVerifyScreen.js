@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import MasterPageLayout from '../../../components/MasterPageLayout';
+import ChildrenLayout from '../../../components/ChildrenLayout';
 import Button from '../../../components/Button';
 import OtpInput from '../../../components/OtpInput';
 import colors from '../../../constants/colors';
@@ -136,7 +136,7 @@ const OtpVerifyScreen = () => {
     };
 
     return (
-        <MasterPageLayout headerType="header" headerProps={{ title: t('otp.verifyTitle'), showCrudText: false, showHomeIcon: false }}>
+        <ChildrenLayout headerType="header" headerProps={{ title: t('otp.verifyTitle'), showHomeIcon: false }}>
             <View style={styles.mainContent}>
                 {otpMessage ? (
                     <View style={styles.successBanner}>
@@ -197,7 +197,7 @@ const OtpVerifyScreen = () => {
                     </TouchableOpacity>
                 )}
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import { moderateSize } from '../../styles';
 import SearchBar from '../../components/SearchBar';
 import CustomIcon from '../../components/CustomIcon';
@@ -8,7 +8,7 @@ import { SAMPLE_ITEMS } from '../../constants/utils';
 
 const SearchScreen = () => {
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="mainHeader"
             headerProps={{ username: 'Snake', notificationCount: 3 }}>
             <View style={styles.content}>
@@ -23,7 +23,7 @@ const SearchScreen = () => {
                     ))}
                 </View>
             </View>
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 };
 

@@ -2,6 +2,7 @@ const colors = {
     primary: '#3629B7',
     secondary: '#2ecc71',
     background: '#f5f5f5',
+    backgroundSecondary: '#F4F7FF',
     textPrimary: '#343434',
     textSecondary: '#979797',
     textWhite: '#ffffff',
@@ -19,6 +20,7 @@ const colors = {
     borderColorGrey01: '#e9e9e9',
     borderColorGrey02: '#d3d3d3',
     borderColorGrey03: '#bdbebd',
+    gold: '#FFB800',
 
     // UI neutrals
     border: '#CBCBCB',

@@ -8,8 +8,8 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { isAuthError, handleAuthError } from '../../../../utils/authErrorHandler';
-import MasterPageLayout from '../../../../components/MasterPageLayout';
+import { isAuthError } from '../../../../utils/authErrorHandler';
+import ParentLayout from '../../../../components/ParentLayout';
 import colors from '../../../../constants/colors';
 import { moderateSize } from '../../../../styles';
 import { useTranslation } from 'react-i18next';
@@ -190,7 +190,6 @@ BookingCard.propTypes = BookingHistoryCardPropTypes;
 
 const BookingHistoryScreen = () => {
     const { t } = useTranslation();
-    const navigation = useNavigation();
     const [bookings, setBookings] = useState([]);
     const [paginatorInfo, setPaginatorInfo] = useState(null);
     const [page, setPage] = useState(1);
@@ -217,7 +216,6 @@ const BookingHistoryScreen = () => {
         } catch (e) {
             const errorMessage = e.message || '';
             if (isAuthError(errorMessage)) {
-                handleAuthError(navigation);
                 return;
             }
             setError(e.message);
@@ -279,36 +277,33 @@ const BookingHistoryScreen = () => {
 
     const headerProps = {
         title: t('bookingHistory.title'),
-        showCrudText: false,
-        showHomeIcon: false,
-        showBackIcon: false,
     };
 
     if (loading && page === 1) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator
                         size="large"
                         color={colors.primary}
                     />
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     if (error) {
         return (
-            <MasterPageLayout headerType="header" headerProps={headerProps}>
+            <ParentLayout headerType="header" headerProps={headerProps}>
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            </MasterPageLayout>
+            </ParentLayout>
         );
     }
 
     return (
-        <MasterPageLayout headerType="header" headerProps={headerProps}>
+        <ParentLayout headerType="header" headerProps={headerProps}>
             <FlatList
                 data={bookings}
                 renderItem={renderBookingCard}
@@ -325,7 +320,7 @@ const BookingHistoryScreen = () => {
                 onRefresh={onRefresh}
                 refreshing={loading && page === 1}
             />
-        </MasterPageLayout>
+        </ParentLayout>
     );
 };
 

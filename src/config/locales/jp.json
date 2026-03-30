@@ -82,7 +82,7 @@
 			"minLength": "新しいパスワードは6文字以上である必要があります",
 			"notMatch": "新しいパスワードと確認パスワードが一致しません",
             "sameAsCurrent":"新しいパスワードは現在のパスワードと異なる必要があります",
-            "maxLength":"新しいパスワードは{{max}}文字以内で入力してください"
+            "maxLength":"パスワードは{{max}}文字以内で入力してください"
 		},
 		"errors": {
 			"failed": "パスワード変更失敗",
@@ -138,7 +138,29 @@
 		"cancelSuccess": "予約をキャンセルしました",
 		"cancelFailed": "予約のキャンセルに失敗しました",
 		"confirmCancelMessage": "この予約をキャンセルしてもよろしいですか？",
-        "roomUnavailable": "選択した日付では利用できる部屋がありません。"},
+        "roomUnavailable": "選択した日付では利用できる部屋がありません。",
+        "promotionTitle": "プロモーションを選択",
+        "promotionSelect": "プロモーションを選択",
+        "promotionNone": "適用なし",
+        "bookingNoteTitle": "予約メモ",
+        "bookingNotePlaceholder": "特別なご要望やチェックイン時間などをご入力ください..."
+    },
+    "promotion": {
+        "screenTitle": "プロモーションを選択",
+        "select": "プロモーションを選択",
+        "none": "適用なし",
+        "welcome2025": "2025年ウェルカム",
+        "welcome2025Desc": "新規のお客様は15%割引",
+        "discount30": "30%割引",
+        "discount30Desc": "まとめて購入でお得なセール",
+        "vip": "VIPプレミアム",
+        "vipDesc": "VIPのお客様は直接割引",
+        "stay7": "7泊割引",
+        "stay7Desc": "7泊以上のご宿泊で25%割引",
+        "tet": "テト2025",
+        "tetDesc": "テトキャンペーン（01/02 - 10/03）"
+    },
+
 	"otp": {
 		"title": "Forgot Password",
 		"verifyTitle": "OTP確認",
@@ -177,7 +199,8 @@
 	},
 		"validate": {
             "required": "{{field}}は必須項目です",
-            "invalidEmail": "有効なメールアドレスを入力してください"
+            "invalidEmail": "有効なメールアドレスを入力してください",
+            "emailRequired": "メールアドレスを入力してください"
         },
 	"customerRoomInfo": {
 		"sections": {
@@ -189,7 +212,8 @@
 			"seeMore": "もっと見る",
 			"seeLess": "折りたたむ",
 			"openMap": "地図を開く",
-			"chooseRoom": "部屋を選ぶ"
+			"chooseRoom": "部屋を選ぶ",
+			"viewAllReviews": "すべてのレビューを見る"
 		},
 		"amenities": {
 			"freeWifi": "無料Wi‑Fi",
@@ -208,12 +232,43 @@
 		},
 		"demoDescription": "好立地にある{{hotelName}}は、ラグジュアリーで上質な滞在を提供します。モダンな建築とプロフェッショナルなサービスで..."
     },
+	"sectionRating": {
+		"title": "ホテル評価",
+		"allRatingsPublic": "すべての評価を表示",
+		"basedOn": "{{count}}件の評価に基づく",
+		"noReviews": "まだレビューがありません",
+		"breakdown": {
+			"roomQuality": "客室の品質",
+			"cleanliness": "清潔さ",
+			"service": "サービス",
+			"value": "コストパフォーマンス",
+			"location": "ロケーション"
+		},
+        "criteria": {
+            "room": "部屋",
+            "cleanliness": "清潔さ",
+            "service": "サービス",
+            "price": "価格",
+            "location": "ロケーション"
+        },
+		"filter": {
+			"all": "全て",
+			"mostHelpful": "最も役立つ"
+		},
+		"helpful": "{{count}}人が役立つと感じました",
+		"roomType": {
+			"deluxe": "デラックスルーム",
+			"standard": "スタンダードルーム",
+			"suite": "スイートルーム"
+		}
+	},
 	"customerSearch": {
 		"title": "検索",
 		"searchPlaceholder": "ハノイ",
 		"perNight": "泊",
 		"inputAddress": "住所を入力して検索",
-		"noResults": "部屋が見つかりません",
+		"noResults": "この検索条件に該当する空室が見つかりませんでした。",
+        "noPopularRooms": "この検索条件に該当する空室が見つかりませんでした。",
 		"resultsFound": "{{count}}件見つかりました",
 		"filters": {
 			"all": "すべて",
@@ -1017,28 +1072,28 @@
         "msg000697": "",
         "msg000698": "",
         "msg000699": "",
-        "msg000700": "",
-        "msg000701": "",
-        "msg000702": "",
-        "msg000703": "",
-        "msg000704": "",
-        "msg000705": "",
-        "msg000706": "",
-        "msg000707": "",
-        "msg000708": "",
-        "msg000709": "",
-        "msg000710": "",
-        "msg000711": "",
-        "msg000712": "",
-        "msg000713": "",
-        "msg000714": "",
-        "msg000715": "",
-        "msg000716": "",
-        "msg000717": "",
-        "msg000718": "",
-        "msg000719": "",
-        "msg000720": "",
-        "msg000721": "",
+        "msg000700": "サービス評価",
+        "msg000701": "部屋の品質",
+        "msg000702": "清潔さ",
+        "msg000703": "サービス",
+        "msg000704": "コストパフォーマンス",
+        "msg000705": "ロケーション",
+        "msg000706": "総合体験",
+        "msg000707": "総合評価",
+        "msg000708": "ご感想",
+        "msg000709": "体験の詳細をお聞かせください...",
+        "msg000710": "アンケートを送信",
+        "msg000711": "未評価",
+        "msg000712": "非常に悪い",
+        "msg000713": "悪い",
+        "msg000714": "普通",
+        "msg000715": "良い",
+        "msg000716": "非常に良い",
+        "msg000717": "ご利用いただきありがとうございます。サービス向上のため、アンケートにご協力ください",
+        "msg000718": "ご協力ありがとうございます。アンケートが正常に送信されました。",
+        "msg000719": "残り{{count}}項目を評価してください",
+        "msg000720": "アンケートを送信できませんでした",
+        "msg000721": "レビューの更新に失敗しました",
         "msg000722": "",
         "msg000723": "",
         "msg000724": "",

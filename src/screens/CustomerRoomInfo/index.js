@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../constants/colors';
 import { moderateSize } from '../../styles/moderateSize';
-import MasterPageLayout from '../../components/MasterPageLayout';
+import ChildrenLayout from '../../components/ChildrenLayout';
 import CustomIcon from '../../components/CustomIcon';
 import RoomQuantityModal from '../../components/modals/RoomQuantityModal';
 import { openMapByQuery } from '../../utils/openMap';
@@ -104,7 +104,14 @@ export default function CustomerRoomInfoScreen() {
             if (!sectionId) {
                 throw new Error('No section ID provided');
             }
-            const data = await fetchCustomerRoomInfo(sectionId);
+            const options = {
+                checkin_date: searchFilter.checkInISO,
+                checkout_date: searchFilter.checkOutISO,
+                adults: searchFilter.adults,
+                children: searchFilter.children,
+            };
+            const data = await fetchCustomerRoomInfo(sectionId, options);
+
             setSectionData(data);
         } catch (err) {
             console.error('Error loading section data:', err);
@@ -320,11 +327,10 @@ export default function CustomerRoomInfoScreen() {
     // Loading state
     if (loading) {
         return (
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: headerTitle,
-                    showCrudText: false,
                     showHomeIcon: false,
                     onLeftIconPress: handleBackPress,
                 }}>
@@ -334,18 +340,17 @@ export default function CustomerRoomInfoScreen() {
                         {t('common.loading')}
                     </Text>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // Error state
     if (error) {
         return (
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: headerTitle,
-                    showCrudText: false,
                     showHomeIcon: false,
                     onLeftIconPress: handleBackPress,
                 }}>
@@ -374,18 +379,17 @@ export default function CustomerRoomInfoScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     // Empty state
     if (!sectionData) {
         return (
-            <MasterPageLayout
+            <ChildrenLayout
                 headerType="header"
                 headerProps={{
                     title: headerTitle,
-                    showCrudText: false,
                     showHomeIcon: false,
                     onLeftIconPress: handleBackPress,
                 }}>
@@ -413,16 +417,15 @@ export default function CustomerRoomInfoScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </MasterPageLayout>
+            </ChildrenLayout>
         );
     }
 
     return (
-        <MasterPageLayout
+        <ChildrenLayout
             headerType="header"
             headerProps={{
                 title: headerTitle,
-                showCrudText: false,
                 showHomeIcon: false,
                 rightIcon: isFav ? 'heart' : 'heart-o',
                 rightIconType: 'FontAwesome',
@@ -540,6 +543,26 @@ export default function CustomerRoomInfoScreen() {
                             />
                         </TouchableOpacity>
                     </View>
+                    {/* View all reviews button */}
+                    <TouchableOpacity
+                        style={styles.reviewCard}
+                        activeOpacity={0.7}
+                        onPress={() =>
+                            navigation.navigate('SectionRatingScreen', {
+                                sectionId: sectionData?.id,
+                                hotelName,
+                            })
+                        }>
+                        <CustomIcon
+                            type="FontAwesome"
+                            name="comments"
+                            size={moderateSize(18)}
+                            color={colors.textPrimary}
+                        />
+                        <Text style={styles.reviewCardText}>
+                            {t('customerRoomInfo.actions.viewAllReviews')}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Description label + content */}
@@ -679,7 +702,7 @@ export default function CustomerRoomInfoScreen() {
                 }}
                 disabled={bookingButtonDisabled}
             />
-        </MasterPageLayout>
+        </ChildrenLayout>
     );
 }
 
@@ -752,6 +775,23 @@ const styles = StyleSheet.create({
     // Title block
     titleBlockContainer: {
         marginBottom: moderateSize(14),
+    },
+    reviewCard: {
+        marginTop: moderateSize(20),
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: moderateSize(2),
+        paddingVertical: moderateSize(10),
+        borderRadius: moderateSize(10),
+        borderWidth: 1,
+        borderColor: colors.borderColorGrey03,
+        backgroundColor: colors.background,
+    },
+    reviewCardText: {
+        color: colors.textPrimary,
+        fontSize: moderateSize(12),
+        fontWeight: '500',
     },
     title: {
         color: colors.textPrimary,
@@ -865,6 +905,7 @@ const styles = StyleSheet.create({
     // Room types
     roomTypesContainer: {
         gap: moderateSize(14),
+        padding: moderateSize(1),
     },
     roomTypeCard: {
         backgroundColor: colors.white,
